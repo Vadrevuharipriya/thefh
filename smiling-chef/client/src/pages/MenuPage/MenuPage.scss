@@ -1,0 +1,1003 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+.menu-page {
+  background-color: white;
+  min-height: 100vh;
+}
+
+// ─── Hero ─────────────────────────────────────────────────────────────────────
+.menu-hero {
+  position: relative;
+  height: 260px;
+  overflow: hidden;
+
+  @include md {
+    height: 320px;
+  }
+
+  &__collage {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    height: 100%;
+    gap: 0;
+
+    @include sm {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  &__panel {
+    position: relative;
+    overflow: hidden;
+
+    &:nth-child(even) img {
+      object-position: center 60%;
+    }
+  }
+
+  &__panel-img {
+    @include img-cover;
+    transition: transform 8s ease;
+
+    &:hover {
+      transform: scale(1.06);
+    }
+  }
+
+  &__overlay {
+    @include absolute-fill;
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.25) 0%,
+      rgba(0, 0, 0, 0.68) 100%
+    );
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  &__content {
+    @include absolute-fill;
+    @include flex-col-center;
+    justify-content: center;
+    text-align: center;
+    padding: 0 1rem;
+    z-index: 2;
+    gap: 0;
+  }
+
+  &__title {
+    font-family: $font-heading;
+    font-weight: 900;
+    font-size: 2.8rem;
+    color: $white;
+    margin: 0 0 0.5rem;
+    line-height: 1;
+
+    @include md {
+      font-size: 3.8rem;
+    }
+  }
+
+  &__subtitle {
+    font-family: $font-body;
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 0.9rem;
+    max-width: 460px;
+    margin: 0;
+    line-height: 1.5;
+  }
+}
+
+// ─── Filters ──────────────────────────────────────────────────────────────────
+.menu-filters {
+  position: sticky;
+  top: 64px; // navbar height
+  z-index: 40;
+  background: $white;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid $border-color;
+
+  &__inner {
+    @include flex-between;
+    @include section-container;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+
+    @include md {
+      flex-wrap: nowrap;
+    }
+  }
+
+  &__selects {
+    display: flex;
+    gap: 0.5rem;
+    flex: 1;
+    flex-wrap: wrap;
+
+    @include md {
+      flex-wrap: nowrap;
+    }
+  }
+
+  .menu-filter-icon-btn {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1rem;
+    border-radius: $radius-full;
+    border: 1.5px solid $border-color;
+    background: $white;
+    color: #555;
+    font-family: $font-body;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: $transition-fast;
+    white-space: nowrap;
+
+    &:hover {
+      border-color: $brand-red;
+      color: $brand-red;
+    }
+  }
+
+  &__tabs {
+    @include section-container;
+    display: flex;
+    gap: 0.35rem;
+    overflow-x: auto;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    @include scrollbar-hide;
+    border-top: 1px solid $border-color;
+  }
+
+  @media (max-width: 639px) {
+
+  /* Row 1 : Selects */
+  .menu-filters__inner {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .menu-filters__selects {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    width: 100%;
+    gap: 0.5rem;
+  }
+
+  .menu-filter-select {
+    min-width: 0;
+    width: 100%;
+    font-size: 0.72rem;
+  }
+
+  /* Hide cuisine tabs */
+  .menu-filters__tabs-left,
+  .menu-filters__cuisine-tabs {
+    display: none !important;
+  }
+
+  /* Row 2 : My Plate ←→ Filters */
+  .menu-filters__tabs {
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    border-top: none;
+    padding-top: 0;
+  }
+
+  .menu-cart-btn {
+    margin-right: auto;
+  }
+
+  .menu-filter-icon-btn {
+    display: flex !important;
+    margin-left: auto;
+  }
+}
+}
+
+.menu-filters-mobile-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.42);
+  z-index: 60;
+}
+
+.menu-filters-mobile-panel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 70;
+  max-height: 88vh;
+  background: $white;
+  border-top-left-radius: $radius-3xl;
+  border-top-right-radius: $radius-3xl;
+  box-shadow: 0 -18px 40px rgba(0, 0, 0, 0.15);
+  padding: 1rem 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow-y: auto;
+}
+
+.menu-filters-mobile-panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.menu-filters-mobile-panel__header h3 {
+  margin: 0 0 0.25rem;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.menu-filters-mobile-panel__header p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #666;
+  line-height: 1.4;
+}
+
+.menu-filters-mobile-panel__close {
+  border: none;
+  background: transparent;
+  color: #444;
+  cursor: pointer;
+  padding: 0.45rem;
+  border-radius: $radius-full;
+}
+
+.menu-filters-mobile-panel__body {
+  display: grid;
+  gap: 1rem;
+}
+
+.filter-group p {
+  margin: 0 0 0.75rem;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: $dark;
+}
+
+.filter-group__grid {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.filter-checkbox,
+.mobile-filter-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  border: 1.5px solid $border-color;
+  border-radius: $radius-xl;
+  background: $cream;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: $transition-fast;
+}
+
+.filter-checkbox--checked,
+.mobile-filter-toggle:hover {
+  border-color: $brand-red;
+}
+
+.filter-checkbox--checked {
+  background: rgba($brand-red, 0.08);
+}
+
+.filter-checkbox input,
+.mobile-filter-toggle input {
+  accent-color: $brand-red;
+  min-width: 1rem;
+  min-height: 1rem;
+}
+
+.menu-filters-mobile-panel__footer {
+  padding-top: 0.5rem;
+}
+
+.menu-filters-mobile-apply {
+  width: 100%;
+  padding: 0.95rem 1rem;
+  border-radius: $radius-xl;
+  font-size: 0.95rem;
+}
+
+// @media (max-width: 639px) {
+//   .menu-filters__tabs {
+//     display: none;
+    
+//   }
+// }
+
+.menu-filter-select {
+  flex: 1;
+  min-width: 130px;
+  appearance: none;
+  background: $cream
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' fill='none' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23888' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E")
+    no-repeat right 0.7rem center;
+  border: 1.5px solid $border-color;
+  border-radius: $radius-xl;
+  padding: 0.5rem 1.8rem 0.5rem 0.8rem;
+  font-family: $font-body;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #555;
+  cursor: pointer;
+  transition: $transition-fast;
+
+  &:focus {
+    outline: none;
+    border-color: $brand-red;
+    background-color: rgba($brand-red, 0.03);
+  }
+
+  &:hover {
+    border-color: $brand-red;
+    color: $brand-red;
+  }
+
+  &--people {
+    @include sm {
+      max-width: 160px;
+    }
+  }
+}
+
+
+.menu-tab {
+  white-space: nowrap;
+  padding: 0.42rem 1rem;
+  border-radius: $radius-full;
+  border: 1.5px solid $border-color;
+  font-family: $font-body;
+  font-size: 0.77rem;
+  font-weight: 700;
+  color: #555;
+  background: $white;
+  transition: $transition-fast;
+  flex-shrink: 0;
+
+  &:hover {
+    border-color: $brand-red;
+    // color stays the same on hover
+  }
+
+  &--active {
+    background: $brand-red;
+    border-color: $brand-red;
+    color: $white;
+  }
+}
+
+// Cart button in tabs
+.menu-filters__tabs {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.menu-filters__tabs-left {
+  flex: 1;
+  overflow: hidden;
+}
+
+.menu-filters__cuisine-tabs {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.menu-filters__cuisine-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.menu-cart-btn {
+  display: none;
+  flex-shrink: 0;
+  position: sticky;
+  right: 0;
+  background: white;
+  z-index: 5;
+
+  @include lg {
+    display: flex;
+  }
+}
+
+.menu-filters__cuisine-tabs,
+.menu-filters__category-tabs {
+  display: flex;
+  gap: 0.35rem;
+  overflow-x: auto;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  @include scrollbar-hide;
+}
+
+.menu-cart-btn {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: $radius-full;
+  border: 2px solid $border-color;
+  font-family: $font-body;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #555;
+  background: $white;
+  transition: $transition-fast;
+  flex-shrink: 0;
+  white-space: nowrap;
+
+  @include lg {
+    display: flex;
+  }
+
+  &:hover {
+    border-color: $brand-red;
+    color: $brand-red;
+  }
+
+  &--active {
+    background: $brand-red;
+    border-color: $brand-red;
+    color: $white;
+  }
+
+  &__badge {
+    background: $brand-gold;
+    color: $dark;
+    font-size: 0.7rem;
+    font-weight: 900;
+    min-width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+// ─── Content ──────────────────────────────────────────────────────────────────
+.menu-content {
+  padding: 2.5rem 0 5rem;
+
+  &__inner {
+    @include section-container;
+    display: flex;
+    flex-direction: column;
+    gap: 3.5rem;
+  }
+}
+
+// ─── Cuisine Section ──────────────────────────────────────────────────────────
+.menu-section {
+  scroll-margin-top: 180px; // navbar + filter bar
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.85rem;
+    border-bottom: 2px solid $border-color;
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 56px;
+      height: 2px;
+      background: $gradient-gold;
+      border-radius: $radius-full;
+    }
+  }
+
+  &__emoji {
+    font-size: 1.5rem;
+    line-height: 1;
+  }
+
+  &__title {
+    font-family: $font-heading;
+    font-size: 1.45rem;
+    font-weight: 900;
+    color: $brand-gold;
+    margin: 0;
+    flex: 1;
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+
+    .menu-section__count {
+      font-family: $font-body;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #888;
+    }
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+
+    @include sm {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    @include md {
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    @include lg {
+      grid-template-columns: repeat(5, 1fr);
+    }
+
+    @media (min-width: 1280px) {
+      grid-template-columns: repeat(6, 1fr);
+    }
+  }
+
+  &__empty {
+    padding: 2rem;
+    text-align: center;
+    color: #888;
+    font-style: italic;
+    background: #fafafa;
+    border-radius: 8px;
+    border: 1px dashed #ddd;
+  }
+}
+
+
+// ─── Empty State ──────────────────────────────────────────────────────────────
+.menu-empty {
+  @include flex-col-center;
+  gap: 1rem;
+  padding: 5rem 1rem;
+  text-align: center;
+
+  &__icon {
+    color: #ccc;
+  }
+
+  &__title {
+    font-family: $font-heading;
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #666;
+    margin: 0;
+  }
+
+  &__text {
+    font-family: $font-body;
+    font-size: 0.9rem;
+    color: #aaa;
+    margin: 0;
+  }
+}
+
+// ─── My Plate Button ──────────────────────────────────────────────────────────
+.my-plate-btn {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: $gradient-red;
+  color: $white;
+  padding: 0.8rem 1.3rem;
+  border-radius: $radius-full;
+  box-shadow: $shadow-red;
+  font-family: $font-heading;
+  font-weight: 800;
+  font-size: 0.875rem;
+  transition: $transition-medium;
+  animation: float 3s ease-in-out infinite;
+
+  &:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 14px 40px rgba($brand-red, 0.5);
+    animation-play-state: paused;
+  }
+
+  &__badge {
+    background: $white;
+    color: $brand-red;
+    font-size: 0.7rem;
+    font-weight: 900;
+    width: 22px;
+    height: 22px;
+    border-radius: $radius-full;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+}
+
+// ─── Plate Drawer ─────────────────────────────────────────────────────────────
+.plate-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 48;
+  backdrop-filter: blur(3px);
+}
+
+.plate-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(380px, 100vw);
+  background: $white;
+  z-index: 49;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -8px 0 48px rgba(0, 0, 0, 0.18);
+  animation: slideIn 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+
+  @keyframes slideIn {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  &__header {
+    @include flex-between;
+    padding: 1.25rem 1.25rem 1rem;
+    border-bottom: 1px solid $border-color;
+    background: $cream;
+  }
+
+  &__title {
+    font-family: $font-heading;
+    font-size: 1.2rem;
+    font-weight: 900;
+    color: #1a1a1a;
+    margin: 0 0 2px;
+  }
+
+  &__subtitle {
+    font-family: $font-body;
+    font-size: 0.78rem;
+    color: #888;
+    margin: 0;
+  }
+
+  &__close {
+    width: 36px;
+    height: 36px;
+    border-radius: $radius-full;
+    background: $white;
+    color: #555;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: $transition-fast;
+    box-shadow: $shadow-card;
+
+    &:hover {
+      background: rgba($brand-red, 0.1);
+      color: $brand-red;
+    }
+  }
+
+  &__items {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  &__footer {
+    padding: 1rem 1.25rem;
+    border-top: 1px solid $border-color;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    background: $cream;
+  }
+
+  &__clear {
+    font-family: $font-body;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #888;
+    text-align: center;
+    padding: 0.3rem;
+    transition: $transition-fast;
+
+    &:hover {
+      color: $brand-red;
+    }
+  }
+}
+
+// ─── Plate Item ───────────────────────────────────────────────────────────────
+.plate-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem;
+  background: $cream;
+  border-radius: $radius-xl;
+  border: 1px solid $border-color;
+  transition: $transition-fast;
+
+  &:hover {
+    border-color: rgba($brand-red, 0.2);
+    background: rgba($brand-red, 0.03);
+  }
+
+  &__img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: $radius-lg;
+    flex-shrink: 0;
+  }
+
+  &__info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.35rem;
+  }
+
+  &__veg-icon {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  &__name {
+    font-family: $font-body;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #333;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__controls {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: $white;
+    border: 1.5px solid $border-color;
+    border-radius: $radius-full;
+    padding: 0.2rem 0.45rem;
+    flex-shrink: 0;
+  }
+
+  &__count {
+    font-family: $font-heading;
+    font-size: 0.82rem;
+    font-weight: 900;
+    color: $brand-red;
+    min-width: 16px;
+    text-align: center;
+  }
+
+  &__btn {
+    width: 20px;
+    height: 20px;
+    border-radius: $radius-full;
+    background: $brand-red;
+    color: $white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: $transition-fast;
+
+    &:hover {
+      background: $brand-red-dark;
+    }
+  }
+}
+
+// ─── Toast Notification ─────────────────────────────────────────────────────────
+.menu-toast {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  background: #22c55e;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 50px;
+  font-family: $font-body;
+  font-size: 0.875rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 20px rgba(34, 197, 94, 0.4);
+  animation: toastSlideIn 0.3s ease-out;
+  white-space: nowrap;
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+// ─── Sticky Cart Icon ────────────────────────────────────────────────────────────
+.menu-cart-icon-wrapper {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 45;
+}
+
+.menu-cart-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #f3f4f6;
+  border: 2px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+
+  &:hover {
+    background: #fee2e2;
+    border-color: $brand-red;
+    color: $brand-red;
+  }
+
+  &--active {
+    background: $brand-red;
+    border-color: $brand-red;
+    color: white;
+    box-shadow: 0 4px 15px rgba($brand-red, 0.4);
+    animation: pulse 2s infinite;
+
+    &:hover {
+      background: $brand-red-dark;
+      transform: scale(1.05);
+    }
+  }
+
+  &__badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #fbbf24;
+    color: #92400e;
+    font-family: $font-heading;
+    font-weight: 900;
+    font-size: 0.7rem;
+    min-width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid white;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba($brand-red, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba($brand-red, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba($brand-red, 0);
+  }
+}
+
+// ─── Floating Cart Button ─────────────────────────────────────────────────────
+.floating-cart-btn {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #22c55e;
+  color: $white;
+  border: none;
+  border-radius: 50px;
+  padding: 12px 24px;
+  font-family: $font-body;
+  font-size: 0.95rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+  transition: all 0.3s ease;
+  z-index: 50;
+  white-space: nowrap;
+
+  @include lg {
+    display: none;
+  }
+
+  &:hover {
+    background: #16a34a;
+    box-shadow: 0 6px 16px rgba(34, 197, 94, 0.4);
+    transform: translateX(-50%) translateY(-2px);
+  }
+
+  &:active {
+    transform: translateX(-50%) translateY(0);
+  }
+
+  @include sm {
+    bottom: 30px;
+  }
+
+  &__text {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    &::after {
+      content: '→';
+      font-size: 1.1rem;
+    }
+  }
+
+  &__count {
+    background: rgba(255, 255, 255, 0.3);
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+}

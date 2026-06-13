@@ -1,0 +1,100 @@
+@use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
+
+// ─── Page Shell ────────────────────────────────────────────────────────────
+.account-page {
+  min-height: 100vh;
+  background: #f2f2f2;
+  padding: 6rem 1rem 4rem;
+
+  &__inner {
+   max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 32px;
+  }
+
+  &__container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0;
+  }
+
+  &__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+  }
+
+  &__logout {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1rem;
+    border-radius: $radius-xl;
+    border: none;
+    background: $brand-red;
+    color: $white;
+    font-family: $font-body;
+    font-weight: 700;
+    cursor: pointer;
+    transition: $transition-fast;
+
+    &:hover {
+      background: $brand-red-dark;
+    }
+  }
+
+  &__tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  &__tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.8rem 1rem;
+    border-radius: $radius-xl;
+    border: 1px solid $border-color;
+    background: $white;
+    color: #444;
+    font-family: $font-body;
+    font-size: 0.875rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: $transition-fast;
+
+    &:hover {
+      background: #fafafa;
+    }
+
+    &--active {
+      background: $brand-red;
+      color: $white;
+      border-color: $brand-red;
+    }
+  }
+
+  // ─── Welcome heading ─────────────────────────────────────────────────────
+  &__welcome {
+    font-family: $font-heading;
+    font-size: 1.75rem;
+    font-weight: 900;
+    color: #111;
+    margin: 0 0 1.75rem;
+    letter-spacing: -0.01em;
+
+    span {
+      color: #111;
+    }
+
+    @include md {
+      font-size: 2rem;
+    }
+  }
+}

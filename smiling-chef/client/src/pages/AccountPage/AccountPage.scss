@@ -1,0 +1,1266 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+// ─── Page Shell ────────────────────────────────────────────────────────────
+.account-page {
+  min-height: 100vh;
+  background: #f2f2f2;
+  padding: 6rem 1rem 4rem;
+  // ─── Swiggy-style order cards ────────────────────────────────────────────────
+// Add these rules inside the .account-page { } block in your existing SCSS file.
+
+  &__orders-count {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #333;
+    margin: 0 0 1rem;
+  }
+
+  &__swiggy-card {
+    background: $white;
+    border: 1px solid #e5e7eb;
+    border-radius: $radius-2xl;
+    overflow: hidden;
+    transition: box-shadow 0.2s ease;
+
+    &:hover {
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+  }
+
+  // Top bar: status + meta
+  &__swiggy-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.875rem 1.125rem;
+    border-bottom: 1px solid #f3f4f6;
+    background: #fafafa;
+    flex-wrap: wrap;
+  }
+
+  &__swiggy-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-weight: 700;
+    font-size: 0.9375rem;
+    color: #222;
+  }
+
+  &__swiggy-status-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #9ca3af;
+    flex-shrink: 0;
+  }
+
+  &__swiggy-status--delivered &__swiggy-status-dot { background: #22c55e; }
+  &__swiggy-status--pending &__swiggy-status-dot  { background: #f59e0b; }
+  &__swiggy-status--cancelled &__swiggy-status-dot,
+  &__swiggy-status--failed &__swiggy-status-dot   { background: $brand-red; }
+
+  &__swiggy-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.15rem;
+    text-align: right;
+  }
+
+  &__swiggy-order-num {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-weight: 700;
+    font-size: 0.875rem;
+    color: #222;
+  }
+
+  &__swiggy-copy-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: #aaa;
+    cursor: pointer;
+    transition: color 0.15s;
+
+    &:hover { color: #555; }
+  }
+
+  &__swiggy-meta-detail {
+    font-size: 0.8125rem;
+    color: #6b7280;
+    font-weight: 500;
+  }
+
+  // Restaurant row + items
+  &__swiggy-body {
+    padding: 1rem 1.125rem;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  &__swiggy-restaurant {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    margin-bottom: 0.875rem;
+  }
+
+  &__swiggy-logo {
+    width: 32px;
+    height: 32px;
+    border-radius: $radius-lg;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  &__swiggy-logo-placeholder {
+    width: 32px;
+    height: 32px;
+    border-radius: $radius-lg;
+    background: #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #aaa;
+    flex-shrink: 0;
+  }
+
+  &__swiggy-restaurant-name {
+    font-weight: 700;
+    font-size: 0.9375rem;
+    color: $brand-red;
+    flex: 1;
+  }
+
+  &__swiggy-item-count {
+    font-size: 0.8125rem;
+    color: #6b7280;
+    font-weight: 500;
+    margin-left: auto;
+    white-space: nowrap;
+  }
+
+  &__swiggy-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  &__swiggy-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  &__swiggy-item-left {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  &__swiggy-veg-dot {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    flex-shrink: 0;
+
+    &--veg    { background: #16a34a; }
+    &--nonveg { background: $brand-red; }
+  }
+
+  &__swiggy-item-name {
+    font-size: 0.875rem;
+    color: #333;
+    font-weight: 500;
+  }
+
+  &__swiggy-item-price {
+    font-size: 0.875rem;
+    color: #555;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  // Footer: Reorder + View Details
+  &__swiggy-footer {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 0.75rem 1.125rem;
+  }
+
+  &__swiggy-btn {
+    font-family: $font-body;
+    font-size: 0.875rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    border: none;
+    background: transparent;
+    padding: 0.5rem 0;
+
+    &:hover { opacity: 0.75; }
+
+    &--reorder {
+      background: $brand-red;
+      color: $white;
+      padding: 0.6rem 1.25rem;
+      border-radius: $radius-xl;
+      font-size: 0.875rem;
+
+      &:hover {
+        opacity: 1;
+        background: $brand-red-dark;
+      }
+    }
+
+    &--details {
+      color: #4b5563;
+      text-decoration: none;
+      font-weight: 600;
+    }
+  }
+  &__inner {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  &__container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0;
+  }
+
+  &__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+  }
+
+  &__logout {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1rem;
+    border-radius: $radius-xl;
+    border: none;
+    background: $brand-red;
+    color: $white;
+    font-family: $font-body;
+    font-weight: 700;
+    cursor: pointer;
+    transition: $transition-fast;
+
+    &:hover {
+      background: $brand-red-dark;
+    }
+  }
+
+  &__tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  &__tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.8rem 1rem;
+    border-radius: $radius-xl;
+    border: 1px solid $border-color;
+    background: $white;
+    color: #444;
+    font-family: $font-body;
+    font-size: 0.875rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: $transition-fast;
+
+    &:hover {
+      background: #fafafa;
+    }
+
+    &--active {
+      background: $brand-red;
+      color: $white;
+      border-color: $brand-red;
+    }
+  }
+
+  // ─── Welcome heading ─────────────────────────────────────────────────────
+  &__welcome {
+    font-family: $font-heading;
+    font-size: 1.75rem;
+    font-weight: 900;
+    color: #111;
+    margin: 0 0 1.75rem;
+    letter-spacing: -0.01em;
+
+    span {
+      color: #111;
+    }
+
+    @include md {
+      font-size: 2rem;
+    }
+  }
+
+  // ─── Two-column layout ───────────────────────────────────────────────────
+  &__layout {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+
+    @media (max-width: 767px) {
+      flex-direction: column;
+    }
+  }
+
+  // ─── Sidebar ─────────────────────────────────────────────────────────────
+  &__sidebar {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex-shrink: 0;
+    width: 260px;
+    background: $white;
+    border-radius: $radius-2xl;
+    box-shadow: $shadow-card;
+    overflow: hidden;
+    border: 1px solid $border-color;
+    position: sticky;
+    top: 6rem;
+    align-self: flex-start;
+    max-height: calc(100vh - 8rem);
+    overflow-y: auto;
+
+    @media (max-width: 767px) {
+      width: 100%;
+      position: static;
+      max-height: none;
+    }
+  }
+
+  &__nav-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__sidebar-title {
+    font-family: $font-heading;
+    font-size: 0.9375rem;
+    font-weight: 800;
+    color: #111;
+    padding: 1.125rem 1.25rem 0.875rem;
+    margin: 0;
+    border-bottom: 1px solid $border-color;
+  }
+
+  &__nav-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.8125rem 1.25rem;
+    background: transparent;
+    border: none;
+    font-family: $font-body;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #444;
+    cursor: pointer;
+    text-align: left;
+    transition: $transition-fast;
+    border-bottom: 1px solid #f5f5f5;
+
+    .account-page__nav-chevron {
+      margin-left: auto;
+      opacity: 0;
+      color: $brand-red;
+      transition: $transition-fast;
+    }
+
+    &:hover {
+      background: #f7f7f7;
+      color: $brand-red;
+
+      .account-page__nav-chevron {
+        opacity: 1;
+      }
+    }
+
+    &--active {
+      background: #efefef;
+      color: #111;
+      font-weight: 700;
+
+      .account-page__nav-chevron {
+        opacity: 1;
+        color: #999;
+      }
+    }
+
+    &--logout {
+      color: $brand-red;
+      border-bottom: none;
+
+      &:hover {
+        background: #fff0f0;
+        color: $brand-red-dark;
+      }
+    }
+  }
+
+  &__sidebar-divider {
+    height: 1px;
+    background: $border-color;
+    margin: 0.25rem 0;
+  }
+
+  // ─── Content panel ───────────────────────────────────────────────────────
+  &__content {
+    flex: 1;
+    min-width: 0;
+    background: $white;
+    border: 1px solid $border-color;
+    border-radius: $radius-2xl;
+    padding: 1.75rem;
+    box-shadow: $shadow-card;
+    overflow-y: auto;
+    max-height: calc(100vh - 8rem);
+
+    @media (max-width: 767px) {
+      max-height: none;
+    }
+  }
+
+  &__section {
+    animation: sectionFadeIn 0.2s ease;
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    background: $white;
+    border: 1px solid $border-color;
+    border-radius: $radius-2xl;
+    padding: 1.5rem;
+  }
+
+  &__order-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 1.2rem 1.25rem;
+    border-bottom: 1px solid #f0f0f0;
+    font-weight: 700;
+    color: #222;
+    background: #fafafa;
+  }
+
+  &__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: $radius-xl;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    background: #f3f4f6;
+    color: #374151;
+    white-space: nowrap;
+
+    &--pending {
+      background: #fef3c7;
+      color: #a16207;
+    }
+
+    &--delivered {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    &--cancelled,
+    &--failed {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+  }
+
+  &__order-source,
+  &__order-items,
+  &__order-total {
+    padding: 0.95rem 1.25rem;
+    color: #444;
+  }
+
+  &__order-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+
+  &__loyalty-card {
+    background: $white;
+    border: 1.5px solid $border-color;
+    border-radius: $radius-2xl;
+    padding: 1.5rem;
+  }
+
+  &__loyalty-top {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  &__star-icon {
+    color: $brand-red;
+  }
+
+  &__payment-methods {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
+  }
+
+  &__payment-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  &__edit-btn,
+  &__delete-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: $radius-lg;
+    border: 1px solid $border-color;
+    background: $white;
+    color: #666;
+    cursor: pointer;
+    transition: $transition-fast;
+  }
+
+  &__edit-btn:hover,
+  &__delete-btn:hover {
+    background: #f4f4f4;
+  }
+
+  &__default-badge {
+    display: inline-block;
+    background: #dcfce7;
+    color: #166534;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.15rem 0.5rem;
+    border-radius: $radius-full;
+    margin-top: 0.5rem;
+  }
+
+  @keyframes sectionFadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  &__section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+
+    h2 {
+      font-family: $font-heading;
+      font-size: 1.125rem;
+      font-weight: 800;
+      color: #111;
+      margin: 0;
+    }
+  }
+
+  // ─── Order cards ─────────────────────────────────────────────────────────
+  &__orders {
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+  }
+
+  &__order-row {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr 1.4fr 0.9fr auto;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1.25rem;
+
+    @media (max-width: 600px) {
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto auto;
+    }
+
+    &--header {
+      background: $white;
+      border-bottom: 1px solid #f0f0f0;
+
+      span {
+        font-family: $font-body;
+        font-size: 0.8125rem;
+        font-weight: 700;
+        color: #555;
+        white-space: nowrap;
+      }
+    }
+
+    &--data {
+      background: $white;
+
+      span {
+        font-family: $font-body;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #222;
+      }
+    }
+  }
+
+  &__order-card {
+    background: #ffffff;
+    border: 1px solid #e6e8f0;
+    border-radius: $radius-2xl;
+    overflow: hidden;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+    display: flex;
+    flex-direction: column;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 24px 48px rgba(15, 23, 42, 0.1);
+      border-color: #cbd5e1;
+    }
+  }
+
+  &__order-card--clickable {
+    cursor: pointer;
+  }
+
+  // New modern order card layout
+  &__order-card-header {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    padding: 0.9rem 1.05rem;
+    border-bottom: 1px solid #f3f3f3;
+    background: #fcfdff;
+  }
+
+  &__order-card-image-section {
+    width: 72px;
+    height: 72px;
+    flex-shrink: 0;
+    border-radius: $radius-lg;
+    overflow: hidden;
+    background: #fafafa;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display:block;
+    }
+  }
+
+  &__order-image-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg,#f5f5f5,#ececec);
+    border-radius: $radius-lg;
+  }
+
+  &__order-card-info {
+    display:flex;
+    flex:1;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:1rem;
+  }
+
+  &__order-card-details {
+    display:flex;
+    flex-direction:column;
+    gap:0.25rem;
+  }
+
+  &__order-id {
+    font-weight:800;
+    color:#333;
+    font-size:0.95rem;
+  }
+
+  &__order-type {
+    font-weight:700;
+    color:#222;
+  }
+
+  &__order-location {
+    color:#777;
+    font-size:0.9rem;
+  }
+
+  &__order-card-items {
+    padding: 1rem 1.1rem 1.2rem;
+    border-top: 1px solid #eef2f7;
+    background: #f9fbff;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  &__order-card-item {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: space-between;
+    background: #ffffff;
+    border: 1px solid #edf2f7;
+    border-radius: $radius-xl;
+    padding: 0.85rem 1rem;
+  }
+
+  &__order-item-qty {
+    background: rgba(239, 30, 75, 0.1);
+    color: $brand-red;
+    padding: 0.3rem 0.65rem;
+    border-radius: $radius-full;
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+  }
+
+  &__order-card-footer {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:1rem;
+    padding:0.75rem 1rem;
+    border-top:1px solid #f3f3f3;
+  }
+
+  &__order-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.9rem 1.3rem;
+    border-radius: $radius-xl;
+    border: 1px solid transparent;
+    background: $brand-red;
+    color: $white;
+    font-family: $font-body;
+    font-weight: 800;
+    font-size: 0.875rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s ease, transform 0.2s ease;
+
+    &:hover {
+      background: darken($brand-red, 5%);
+      transform: translateY(-1px);
+    }
+
+    &--reorder {
+      padding: 0.85rem 1.1rem;
+    }
+  }
+
+  &__order-summary {
+    text-align: right;
+    color: #2f3d55;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+
+  // ─── Profile info ────────────────────────────────────────────────────────
+  &__info-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    background: $white;
+    border-radius: $radius-2xl;
+    border: 1px solid $border-color;
+    padding: 1.5rem;
+  }
+
+  &__info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  &__info-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  &__info-value {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #222;
+  }
+
+  // ─── Forms ───────────────────────────────────────────────────────────────
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+
+    &--card {
+      background: $white;
+      border: 1px solid $border-color;
+      border-radius: $radius-2xl;
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+
+      h3 {
+        font-family: $font-heading;
+        font-size: 1rem;
+        font-weight: 800;
+        color: #222;
+        margin: 0 0 0.5rem;
+      }
+    }
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+
+    label {
+      font-size: 0.8125rem;
+      font-weight: 700;
+      color: #555;
+    }
+
+    input, textarea, select {
+      padding: 0.7rem 0.875rem;
+      border: 1.5px solid $border-color;
+      border-radius: $radius-xl;
+      font-family: $font-body;
+      font-size: 0.875rem;
+      color: #222;
+      background: $white;
+      transition: $transition-fast;
+
+      &:focus {
+        outline: none;
+        border-color: $brand-red;
+        box-shadow: 0 0 0 3px rgba($brand-red, 0.07);
+      }
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+  }
+
+  &__grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+
+    @media (max-width: 500px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem;
+
+    @media (max-width: 600px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  // ─── Buttons ─────────────────────────────────────────────────────────────
+  &__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.625rem 1.25rem;
+    border-radius: $radius-xl;
+    font-family: $font-body;
+    font-weight: 700;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: $transition-fast;
+    border: 1.5px solid $border-color;
+    background: $white;
+    color: #444;
+
+    &:hover {
+      border-color: #aaa;
+      background: #f9f9f9;
+    }
+
+    &--primary {
+      background: $brand-red;
+      color: $white;
+      border-color: $brand-red;
+
+      &:hover {
+        background: $brand-red-dark;
+        border-color: $brand-red-dark;
+      }
+    }
+
+    &--outline {
+      background: transparent;
+      color: $brand-red;
+      border-color: $brand-red;
+
+      &:hover {
+        background: $brand-red;
+        color: $white;
+      }
+    }
+  }
+
+  &__icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: $radius-lg;
+    border: 1px solid $border-color;
+    background: $white;
+    color: #666;
+    cursor: pointer;
+    transition: $transition-fast;
+    flex-shrink: 0;
+
+    &:hover {
+      background: #f5f5f5;
+      color: #333;
+    }
+
+    &--danger {
+      &:hover {
+        background: #fee2e2;
+        border-color: #fca5a5;
+        color: $brand-red;
+      }
+    }
+  }
+
+  // ─── Address cards ───────────────────────────────────────────────────────
+  &__addresses {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
+  }
+
+  &__address-card {
+    background: $white;
+    border: 1.5px solid $border-color;
+    border-radius: $radius-2xl;
+    padding: 1.125rem;
+    font-size: 0.875rem;
+    color: #555;
+    line-height: 1.55;
+    transition: $transition-fast;
+
+    &:hover {
+      box-shadow: $shadow-card;
+    }
+  }
+
+  &__address-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+  }
+
+  &__address-label {
+    background: #f0f0f0;
+    color: #333;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.2rem 0.6rem;
+    border-radius: $radius-full;
+  }
+
+  &__address-name {
+    font-weight: 700;
+    color: #222;
+    margin-bottom: 0.2rem;
+  }
+
+  &__address-phone {
+    color: #888;
+    font-size: 0.8125rem;
+    margin-top: 0.25rem;
+  }
+
+  // ─── Loyalty card ────────────────────────────────────────────────────────
+  &__loyalty-card {
+    background: $white;
+    border: 1.5px solid $border-color;
+    border-radius: $radius-2xl;
+    padding: 1.5rem;
+  }
+
+  &__loyalty-top {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  &__loyalty-icon-wrap {
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, #fde68a, #fbbf24);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #92400e;
+    flex-shrink: 0;
+  }
+
+  &__loyalty-points {
+    font-family: $font-heading;
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: $brand-red;
+    margin: 0 0 0.2rem;
+  }
+
+  &__loyalty-meta {
+    font-size: 0.8125rem;
+    color: #777;
+    margin: 0;
+  }
+
+  &__loyalty-desc {
+    font-size: 0.875rem;
+    color: #666;
+    margin: 0;
+    padding-top: 1rem;
+    border-top: 1px solid #f0f0f0;
+  }
+
+  // ─── Referral card ───────────────────────────────────────────────────────
+  &__referral-card {
+    background: $white;
+    border: 1.5px solid $border-color;
+    border-radius: $radius-2xl;
+    padding: 1.5rem;
+  }
+
+  &__referral-label {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 0 0 0.5rem;
+  }
+
+  &__referral-code-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  &__referral-code {
+    font-family: $font-heading;
+    font-size: 1.375rem;
+    font-weight: 900;
+    color: $brand-red;
+    background: #fff0f0;
+    padding: 0.4rem 1rem;
+    border-radius: $radius-lg;
+    letter-spacing: 0.08em;
+  }
+
+  &__copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.5rem 0.875rem;
+    background: $brand-red;
+    color: $white;
+    border: none;
+    border-radius: $radius-lg;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: $transition-fast;
+
+    &:hover {
+      background: $brand-red-dark;
+    }
+  }
+
+  &__referral-desc {
+    font-size: 0.875rem;
+    color: #666;
+    margin: 0 0 0.75rem;
+    padding-top: 1rem;
+    border-top: 1px solid #f0f0f0;
+  }
+
+  &__referral-earnings {
+    font-size: 0.875rem;
+    color: #444;
+    margin: 0;
+  }
+
+  // ─── Payment cards ───────────────────────────────────────────────────────
+  &__payment-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+
+  &__payment-card {
+    background: $white;
+    border: 1.5px solid $border-color;
+    border-radius: $radius-2xl;
+    padding: 1.125rem;
+    font-size: 0.875rem;
+    color: #555;
+    transition: $transition-fast;
+
+    &:hover {
+      box-shadow: $shadow-card;
+    }
+  }
+
+  &__payment-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+  }
+
+  &__payment-type {
+    font-weight: 700;
+    color: #222;
+    font-size: 0.875rem;
+  }
+
+  &__payment-actions {
+    display: flex;
+    gap: 0.4rem;
+  }
+
+  &__payment-details {
+    color: #888;
+    font-size: 0.8125rem;
+  }
+
+  &__default-badge {
+    display: inline-block;
+    background: #dcfce7;
+    color: #166534;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.15rem 0.5rem;
+    border-radius: $radius-full;
+    margin-top: 0.5rem;
+  }
+
+  // ─── Empty state ─────────────────────────────────────────────────────────
+  &__empty {
+    @include flex-col-center;
+    gap: 0.75rem;
+    padding: 3rem 1rem;
+    color: #bbb;
+    background: $white;
+    border-radius: $radius-2xl;
+    border: 1.5px dashed $border-color;
+
+    svg {
+      opacity: 0.4;
+    }
+
+    p {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: #aaa;
+      margin: 0;
+    }
+  }
+
+  // ─── Loading ─────────────────────────────────────────────────────────────
+  &__loading {
+    @include flex-center;
+    gap: 1rem;
+    min-height: 60vh;
+  }
+
+  &__loading-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #e8e0d6;
+    border-top-color: $brand-red;
+    border-radius: 50%;
+    animation: spin 0.75s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+}

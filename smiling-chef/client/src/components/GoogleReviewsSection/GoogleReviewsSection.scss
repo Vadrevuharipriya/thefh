@@ -1,0 +1,298 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.google-reviews {
+  background: #EBEBEB;
+  padding: 3rem 1rem;
+
+  @include md { padding: 4rem 1.25rem; }
+
+  // ── Top heading ─────────────────────────────────────────────────────────────
+  &__top {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  &__title {
+    font-family: $font-heading;
+    font-size: 2rem;
+    font-weight: 800;
+    color: $dark;
+    line-height: 1.3;
+    margin-bottom: 0.5rem;
+
+    @include md { font-size: 2.4rem; }
+
+    span { color: $brand-red; }
+  }
+
+  &__subtitle {
+    font-family: $font-body;
+    font-size: 1rem;
+    color: #666;
+    margin-top: 0.4rem;
+  }
+
+  // ── Content row ─────────────────────────────────────────────────────────────
+  &__carousel {
+    max-width: 1280px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  // ── Left panel (hidden) ─────────────────────────────────────────────────────────────
+  &__left {
+    display: none;
+  }
+
+  &__big-rating {
+    font-family: $font-heading;
+    font-size: 3rem;
+    font-weight: 900;
+    color: $dark;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+  }
+
+  &__stars-box {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15rem;
+    background: $white;
+    border: 1px solid #d0d0d0;
+    border-radius: 4px;
+    padding: 0.35rem 0.6rem;
+    margin-bottom: 0.75rem;
+  }
+
+  &__label {
+    font-family: $font-body;
+    font-size: 0.9rem;
+    color: #555;
+    margin-bottom: 0.2rem;
+    line-height: 1.4;
+  }
+
+  &__business {
+    font-family: $font-body;
+    font-size: 0.85rem;
+    color: #555;
+    line-height: 1.5;
+    margin-bottom: 0.85rem;
+  }
+
+  &__total {
+    font-family: $font-heading;
+    font-size: 1.9rem;
+    font-weight: 900;
+    color: $dark;
+  }
+
+  // ── Right panel ─────────────────────────────────────────────────────────────
+  &__right {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  // Carousel wrap — position context for nav arrows.
+  // padding: 0 24px creates space so arrows (centered at 24px from edge) sit
+  // half-inside / half-outside the viewport without clipping.
+  &__carousel-wrap {
+    position: relative;
+    padding: 0 24px;
+
+    @media (max-width: 640px) {
+      padding: 0 16px;
+    }
+  }
+
+  // Viewport — clips the sliding track
+  &__viewport {
+    overflow: hidden;
+    border-radius: $radius-lg;
+  }
+
+  // Track — horizontal flex container for all slides; slides via CSS transform
+  &__track {
+    display: flex;
+    align-items: stretch;
+    transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: transform;
+  }
+
+  // Individual slide wrapper
+  &__slide {
+    flex-shrink: 0;
+    box-sizing: border-box;
+    padding: 0 0.5rem;
+
+    // Remove inner padding from first / last so cards align with viewport edges
+    &:first-child { padding-left: 0; }
+    &:last-child  { padding-right: 0; }
+  }
+
+  // ── Nav arrows — half inside / half outside the viewport ────────────────────
+  &__nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    border-radius: $radius-full;
+    border: 1px solid #c8c8c8;
+    background: $white;
+    box-shadow: $shadow-card;
+    @include flex-center;
+    cursor: pointer;
+    color: $dark;
+    transition: $transition-base;
+    z-index: 2;
+
+    // Arrow center aligns with viewport edges (padding is 24px, button is 40px,
+    // center = 4px + 20px = 24px from carousel-wrap edge = viewport edge)
+    &--prev { left: 4px; }
+    &--next { right: 4px; }
+
+    &:hover:not(:disabled) {
+      background: $brand-red;
+      border-color: $brand-red;
+      color: $white;
+      box-shadow: $shadow-red;
+    }
+
+    &:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    @media (max-width: 640px) {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      
+      &--prev { left: 2px; }
+      &--next { right: 2px; }
+    }
+  }
+
+  // ── Slide dots ──────────────────────────────────────────────────────────────
+  &__dots {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.4rem;
+    padding-top: 0.25rem;
+  }
+
+  &__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: $radius-full;
+    background: #bbb;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: width $transition-medium, background $transition-medium;
+
+    &--active {
+      background: $brand-red;
+      width: 24px;
+    }
+
+    &:hover:not(&--active) {
+      background: #888;
+    }
+  }
+}
+
+// ─── Review card ──────────────────────────────────────────────────────────────
+.gr-card {
+  background: $white;
+  border-radius: $radius-2xl;
+  padding: 1.5rem 1.25rem;
+  box-shadow: $shadow-card;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 300px;
+  height: 100%;
+  box-sizing: border-box;
+
+  @include sm { min-height: 320px; }
+  @include lg { min-height: 340px; }
+
+  &__avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: $radius-full;
+    @include flex-center;
+    overflow: hidden;
+    margin-bottom: 0.15rem;
+    flex-shrink: 0;
+
+    span {
+      font-family: $font-heading;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: $white;
+    }
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  &__name {
+    font-family: $font-heading;
+    font-weight: 700;
+    font-size: 1rem;
+    color: $dark;
+    margin: 0;
+    text-align: center;
+  }
+
+  &__meta {
+    font-family: $font-body;
+    font-size: 0.78rem;
+    color: #888;
+    margin: 0;
+    text-align: center;
+  }
+
+  &__google-link {
+    display: inline-flex;
+    border-radius: $radius-full;
+    padding: 0.15rem;
+    transition: $transition-base;
+    margin: 0.1rem 0;
+
+    &:hover {
+      background: rgba(66, 133, 244, 0.1);
+      transform: scale(1.1);
+    }
+  }
+
+  &__stars {
+    display: flex;
+    gap: 0.15rem;
+  }
+
+  &__text {
+    font-family: $font-body;
+    font-size: 0.88rem;
+    color: #444;
+    line-height: 1.65;
+    text-align: center;
+    margin: 0.25rem 0 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 5;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}

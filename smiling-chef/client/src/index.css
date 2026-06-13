@@ -1,0 +1,109 @@
+@import url('https://fonts.googleapis.com/css2?family=Catamaran:wght@400;500;600;700;800;900&family=Nunito+Sans:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Nunito Sans', sans-serif;
+    font-weight: 400;
+    color: #1A1A1A;
+    background-color: #ffffff;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: block;
+    place-items: unset;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Catamaran', sans-serif;
+    font-weight: 700;
+    line-height: 1.15;
+  }
+
+  a { text-decoration: none; color: inherit; }
+  button { cursor: pointer; border: none; background: none; padding: 0; font-family: inherit; }
+  img { display: block; }
+}
+
+@layer components {
+  .glass {
+    @apply bg-white/10 backdrop-blur-md border border-white/20;
+  }
+
+  .glass-dark {
+    @apply bg-black/20 backdrop-blur-md border border-white/10;
+  }
+
+  .btn-red {
+    @apply bg-brand-red text-white px-7 py-3.5 rounded-full font-heading font-bold text-sm tracking-wide
+           hover:bg-brand-red-dark transition-all duration-200 inline-flex items-center gap-2
+           hover:shadow-[0_8px_32px_rgba(193,39,45,0.4)] hover:-translate-y-0.5 active:translate-y-0;
+  }
+
+  .btn-outline {
+    @apply border-2 border-brand-red text-brand-red px-7 py-3 rounded-full font-heading font-bold text-sm
+           hover:bg-brand-red hover:text-white transition-all duration-200 inline-flex items-center gap-2;
+  }
+
+  .section-tag {
+    @apply inline-flex items-center gap-2 bg-brand-red/10 text-brand-red text-xs font-heading font-bold
+           uppercase tracking-widest px-3 py-1.5 rounded-full mb-4;
+  }
+
+  .section-heading {
+    @apply font-heading text-3xl sm:text-4xl md:text-5xl font-black text-gray-900 leading-tight;
+  }
+
+  .card-glass {
+    @apply bg-white/80 backdrop-blur-sm border border-white/60 rounded-2xl shadow-card;
+  }
+
+  .img-cover {
+    @apply w-full h-full object-cover;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+  .text-gradient {
+    background: linear-gradient(135deg, #C1272D 0%, #DA9100 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .bg-noise {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-float-delay {
+    animation: float 6s ease-in-out 2s infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  .animate-fade-up {
+    animation: fadeUp 0.6s ease forwards;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}

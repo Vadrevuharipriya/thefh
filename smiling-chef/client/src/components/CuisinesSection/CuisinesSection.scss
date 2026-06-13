@@ -1,0 +1,80 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.cuisines-section {
+  padding: 3.5rem 1rem;
+  background-color: $white;
+
+  @include md { padding: 5rem 1rem; }
+
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+
+    @media (max-width: 768px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    @include lg { grid-template-columns: repeat(3, 1fr); }
+  }
+}
+
+.cuisine-item {
+  display: flex;
+  flex-direction: column;
+
+  &__name {
+    font-family: $font-heading;
+    font-weight: 900;
+    color: $dark;
+    font-size: 1rem;
+    text-align: center;
+    padding-top: 0.5rem;
+  }
+}
+
+.cuisine-card {
+  display: block;
+  cursor: pointer;
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.22);
+  }
+
+  // Inner media wrapper — image clipping happens here, not on the card itself
+  &__media {
+    position: relative;
+    overflow: hidden;
+    border-radius: $radius-xl;
+    aspect-ratio: 3 / 2; // smaller than before
+  }
+
+  &__img {
+    @include img-cover;
+    transition: transform 0.55s ease;
+  }
+
+  &:hover &__img {
+    transform: scale(1.08);
+  }
+
+  &__overlay {
+    @include absolute-fill;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.2), transparent);
+  }
+
+  &__hover-tint {
+    @include absolute-fill;
+    background: rgba($brand-red, 0.18);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  &:hover &__hover-tint {
+    opacity: 1;
+  }
+}

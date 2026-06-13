@@ -1,0 +1,53 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+// =============================================
+// Dropdown Animations
+// =============================================
+.mega-dropdown {
+  animation: dropdown-enter 0.15s ease forwards;
+}
+
+.services-dropdown {
+  animation: dropdown-enter 0.15s ease forwards;
+}
+
+@keyframes dropdown-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes services-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// =============================================
+// Mobile Menu Slide Down
+// =============================================
+.mobile-menu {
+  animation: mobile-slide-down 0.2s ease forwards;
+}
+
+@keyframes mobile-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

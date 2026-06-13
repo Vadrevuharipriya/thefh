@@ -1,0 +1,62 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.hero-carousel {
+  // Full-screen slide layer — image + text crossfade as one unit
+  &__slide {
+    position: absolute;
+    inset: 0;
+    transition: opacity 1s ease;
+  }
+
+  // Slide dot transition
+  &__dot {
+    border-radius: $radius-full;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+
+    &--active {
+      width: 2rem;
+      height: 0.5rem;
+      background-color: $brand-red;
+      box-shadow: $shadow-red;
+    }
+
+    &--inactive {
+      width: 0.5rem;
+      height: 0.5rem;
+      background-color: rgba(255, 255, 255, 0.4);
+
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.7);
+      }
+    }
+  }
+
+  // Bottom vignette gradient
+  &__vignette {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 10rem;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent);
+    pointer-events: none;
+  }
+
+  // Nav buttons (prev/next)
+  &__nav-btn {
+    @include glass;
+    color: $white;
+    border-radius: $radius-full;
+    padding: 0.625rem;
+    transition: $transition-base;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: scale(1.001);
+    }
+  }
+}

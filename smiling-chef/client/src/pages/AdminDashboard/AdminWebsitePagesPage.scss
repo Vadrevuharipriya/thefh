@@ -1,0 +1,343 @@
+.admin-website-pages {
+  min-height: 100vh;
+  background: #f8f5f2;
+
+  &__main {
+    margin-left: 260px;
+    padding: 2rem;
+  }
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+
+    h1 {
+      font-family: 'Catamaran', sans-serif;
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: #111;
+      margin: 0;
+    }
+  }
+
+  &__search {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: white;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    max-width: 400px;
+
+    svg {
+      color: #999;
+    }
+
+    input {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-size: 0.875rem;
+    }
+  }
+
+  &__table-container {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  }
+
+  &__table {
+    width: 100%;
+    border-collapse: collapse;
+
+    th, td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    th {
+      background: #faf8f6;
+      font-weight: 600;
+      color: #333;
+      font-size: 0.875rem;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    code {
+      background: #f0f0f0;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      color: #C1272D;
+    }
+  }
+
+  .page-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    background: #e0e7ff;
+    color: #3730a3;
+
+    &.static { background: #e0e7ff; color: #3730a3; }
+    &.dynamic { background: #fef3c7; color: #92400e; }
+    &.service { background: #dcfce7; color: #166534; }
+    &.category { background: #fce7f3; color: #9d174d; }
+    &.blog { background: #fee2e2; color: #991b1b; }
+    &.other { background: #e0e7ff; color: #3730a3; }
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+
+    &.status-active {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    &.status-inactive {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+  }
+
+  .actions {
+    display: flex;
+    gap: 0.5rem;
+
+    button {
+      background: none;
+      border: none;
+      padding: 0.5rem;
+      cursor: pointer;
+      color: #666;
+      border-radius: 8px;
+      transition: all 0.2s;
+
+      &:hover {
+        background: #f0f0f0;
+      }
+
+      &.btn-edit:hover {
+        color: #2563eb;
+        background: #dbeafe;
+      }
+
+      &.btn-delete:hover {
+        color: #dc2626;
+        background: #fee2e2;
+      }
+    }
+  }
+
+  .loading {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+  }
+}
+
+.btn-primary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #C1272D 0%, #921E23 100%);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(193, 39, 45, 0.3);
+  }
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 650px;
+  max-height: 90vh;
+  overflow-y: auto;
+
+  h2 {
+    margin: 0 0 1.5rem;
+    font-family: 'Catamaran', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+}
+
+.form-group {
+  margin-bottom: 1rem;
+
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    font-size: 0.875rem;
+  }
+
+  input, select, textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #e8e0d6;
+    border-radius: 8px;
+    font-size: 0.875rem;
+
+    &:focus {
+      outline: none;
+      border-color: #C1272D;
+    }
+  }
+
+  small {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
+    color: #666;
+  }
+}
+
+.image-preview-wrapper {
+  position: relative;
+  display: inline-block;
+
+  .image-preview {
+    width: 100%;
+    max-height: 180px;
+    object-fit: cover;
+    border-radius: 6px;
+  }
+
+  .image-actions {
+    margin-top: 0.4rem;
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .btn-view-image,
+  .btn-clear-image {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.75rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .btn-view-image {
+    background-color: #3498db;
+    color: white;
+    &:hover { background-color: #2980b9; }
+  }
+
+  .btn-clear-image {
+    background-color: #dc2626;
+    color: white;
+    &:hover { background-color: #b91c1c; }
+  }
+}
+
+.image-upload-wrapper {
+  .file-input {
+    display: none;
+  }
+
+  .file-label {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background-color: #27ae60;
+    color: white;
+    border-radius: 4px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+    &:hover { background-color: #219a52; }
+  }
+}
+
+.required {
+  color: #e74c3c;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+
+  button {
+    flex: 1;
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+
+    &:first-child {
+      background: #f0f0f0;
+      border: none;
+    }
+
+    &:last-child {
+      background: linear-gradient(135deg, #C1272D 0%, #921E23 100%);
+      color: white;
+      border: none;
+    }
+  }
+}
+
+@media (max-width: 1023px) {
+  .admin-website-pages__main {
+    margin-left: 0;
+  }
+
+  .admin-website-pages__table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    font-size: 0.8rem;
+  }
+}

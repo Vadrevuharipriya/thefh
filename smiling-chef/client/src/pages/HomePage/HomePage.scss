@@ -1,0 +1,11 @@
+@use '../../styles/variables' as *;
+
+.home-page {
+  // Page-level layout wrapper
+  display: block;
+  width: 100%;
+
+  section {
+    width: 100%;
+  }
+}

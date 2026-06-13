@@ -1,0 +1,51 @@
+@use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
+.account-page {
+  &__loyalty-card {
+    background: $white;
+    border: 1.5px solid $border-color;
+    border-radius: $radius-2xl;
+    padding: 1.5rem;
+  }
+
+  &__loyalty-top {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  &__loyalty-icon-wrap {
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, #fde68a, #fbbf24);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #92400e;
+    flex-shrink: 0;
+  }
+
+  &__loyalty-points {
+    font-family: $font-heading;
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: $brand-red;
+    margin: 0 0 0.2rem;
+  }
+
+  &__loyalty-meta {
+    font-size: 0.8125rem;
+    color: #777;
+    margin: 0;
+  }
+
+  &__loyalty-desc {
+    font-size: 0.875rem;
+    color: #666;
+    margin: 0;
+    padding-top: 1rem;
+    border-top: 1px solid #f0f0f0;
+  }
+}

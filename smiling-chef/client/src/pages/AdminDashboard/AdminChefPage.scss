@@ -1,0 +1,208 @@
+.admin-chef-page {
+  display: flex;
+  min-height: 100vh;
+  background: #f3f4f6;
+}
+
+.admin-chef-page__content {
+  flex: 1;
+  padding: 2rem 2.5rem;
+  margin-left: 260px;
+  max-width: calc(100% - 260px);
+}
+
+.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid #d1d5db;
+  background: white;
+  color: #111827;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+}
+
+.chef-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.chef-form__card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.chef-form__card--secondary {
+  background: #fafbfc;
+}
+
+.chef-form__section-header {
+  margin-bottom: 1.5rem;
+}
+
+.chef-form__section-header h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.chef-form__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-field--full {
+  grid-column: span 2;
+}
+
+.form-field span {
+  font-size: 0.9rem;
+  color: #4b5563;
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+  width: 100%;
+  min-height: 48px;
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  border: 1px solid #d1d5db;
+  background: #f8fafc;
+  color: #111827;
+  font-size: 0.95rem;
+  outline: none;
+}
+
+.form-field textarea {
+  min-height: 86px;
+  resize: vertical;
+}
+
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+  border-color: #2563eb;
+  background: white;
+}
+
+.chef-form__section-heading {
+  margin-top: 1.75rem;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.doc-upload-group {
+  display: grid;
+  gap: 1rem;
+}
+
+.doc-upload {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.15rem;
+  border-radius: 14px;
+  border: 1px solid #d1d5db;
+  background: white;
+}
+
+.doc-upload span {
+  font-size: 0.95rem;
+  color: #4b5563;
+}
+
+.doc-upload__action {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.doc-upload__input {
+  display: none;
+}
+
+.btn-upload {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  border: 1px solid #d1d5db;
+  background: #f8fafc;
+  color: #111827;
+  cursor: pointer;
+}
+
+.form-error {
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 14px;
+  padding: 1rem;
+}
+
+.chef-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+
+.btn-primary,
+.btn-secondary {
+  border: none;
+  border-radius: 14px;
+  padding: 0.95rem 1.75rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: #dc2626;
+  color: white;
+}
+
+.btn-secondary {
+  background: white;
+  color: #111827;
+  border: 1px solid #d1d5db;
+}
+
+@media (max-width: 980px) {
+  .admin-chef-page__content {
+    margin-left: 0;
+    padding: 1.5rem;
+  }
+  .chef-form__grid {
+    grid-template-columns: 1fr;
+  }
+  .form-field--full {
+    grid-column: span 1;
+  }
+}

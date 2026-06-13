@@ -1,0 +1,461 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+// Local variables (overriding some for this page)
+$brand-red: #c12727;
+$brand-gold: #d4a853;
+$white: #ffffff;
+$cream: #f9f5f0;
+$dark: #1a1a1a;
+$gray-500: #6b7280;
+$gray-700: #374151;
+$gray-900: #111827;
+$border-color: #e5e5e5;
+$radius-lg: 0.5rem;
+$radius-xl: 0.75rem;
+$radius-2xl: 1rem;
+$radius-3xl: 1.5rem;
+$radius-full: 9999px;
+$shadow-card: 0 4px 20px rgba(0, 0, 0, 0.08);
+$transition-base: all 0.2s ease;
+
+$font-heading: 'Oswald', sans-serif;
+$font-body: 'DM Sans', sans-serif;
+
+// ─── Hero ───────────────────────────────────────────────────────────────────────
+.blog-hero {
+  position: relative;
+  min-height: 260px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: 3.5rem;
+  padding-top: 5rem;
+
+  &__overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(160deg, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.6) 60%, rgba(0,0,0,0.35) 100%);
+  }
+
+  &__content {
+    position: relative;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    width: 100%;
+  }
+
+  &__breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 1.1rem;
+
+    a, span {
+      font-family: $font-body;
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.6);
+      transition: $transition-base;
+    }
+    a:hover { color: $white; }
+    svg { color: rgba(255,255,255,0.35); flex-shrink: 0; }
+  }
+
+  &__title {
+    font-family: $font-heading;
+    font-weight: 900;
+    font-size: clamp(2.2rem, 6vw, 4rem);
+    color: $white;
+    line-height: 1.05;
+    margin-bottom: 0.85rem;
+  }
+
+  &__sub {
+    font-family: $font-body;
+    font-size: 1rem;
+    color: rgba(255,255,255,0.72);
+    max-width: 480px;
+    line-height: 1.7;
+  }
+}
+
+/* Utility: simple 2-line clamp when Tailwind plugin isn't available */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.text-brand-gold {
+  color: $brand-gold;
+}
+
+// ─── Filter ────────────────────────────────────────────────────────────────────
+.blog-filter {
+  background: $white;
+  border-bottom: 1px solid $border-color;
+  padding: 1.25rem 1rem;
+  max-width: 100%;
+
+  &__inner {
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  &__search {
+    position: relative;
+    margin-bottom: 1rem;
+
+    &-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: $gray-500;
+    }
+
+    &-input {
+      width: 100%;
+      padding: 0.875rem 1rem 0.875rem 2.75rem;
+      border: 1.5px solid $border-color;
+      border-radius: $radius-full;
+      font-size: 0.9rem;
+      outline: none;
+      transition: $transition-base;
+
+      &:focus {
+        border-color: $brand-red;
+        box-shadow: 0 0 0 3px rgba($brand-red, 0.1);
+      }
+    }
+  }
+
+  &__categories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  &__cat {
+    font-family: $font-body;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border: 1.5px solid $border-color;
+    border-radius: $radius-full;
+    background: $white;
+    color: $gray-700;
+    cursor: pointer;
+    transition: $transition-base;
+    white-space: nowrap;
+
+    &:hover {
+      border-color: $brand-red;
+      color: $brand-red;
+    }
+
+    &--active {
+      background: $brand-red;
+      color: $white;
+      border-color: $brand-red;
+    }
+  }
+}
+
+// ─── Featured Post ─────────────────────────────────────────────────────────────
+.blog-featured {
+  background: $cream;
+  padding: 3rem 1rem;
+  max-width: 100%;
+
+  &__inner {
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  &__card {
+    display: grid;
+    grid-template-columns: 1fr;
+    background: $white;
+    border-radius: $radius-2xl;
+    overflow: hidden;
+    box-shadow: $shadow-card;
+
+    @media (min-width: 768px) {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  &__img {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+
+    @media (min-width: 768px) {
+      height: 100%;
+      min-height: 400px;
+    }
+  }
+
+  &__content {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    @media (min-width: 768px) {
+      padding: 2.5rem;
+    }
+  }
+
+  &__cat {
+    font-family: $font-body;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: $brand-red;
+    margin-bottom: 0.75rem;
+  }
+
+  &__title {
+    font-family: $font-heading;
+    font-weight: 900;
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    color: $dark;
+    line-height: 1.2;
+    margin-bottom: 1rem;
+  }
+
+  &__excerpt {
+    font-family: $font-body;
+    font-size: 0.95rem;
+    color: $gray-700;
+    line-height: 1.7;
+    margin-bottom: 1.5rem;
+  }
+
+  &__meta {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+
+    span {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-family: $font-body;
+      font-size: 0.8rem;
+      color: $gray-500;
+    }
+  }
+
+  &__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: $font-heading;
+    font-weight: 800;
+    font-size: 0.9rem;
+    color: $brand-red;
+    transition: $transition-base;
+
+    &:hover {
+      gap: 0.75rem;
+    }
+  }
+}
+
+// ─── Blog Grid ────────────────────────────────────────────────────────────────
+.blog-grid {
+  background: $cream;
+  padding: 3rem 1rem 4rem;
+  max-width: 100%;
+
+  &__inner {
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  &__heading {
+    font-family: $font-heading;
+    font-weight: 900;
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    color: $dark;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+
+  &__cards {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+
+    @media (min-width: 640px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (min-width: 1024px) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+}
+
+.blog-card {
+  background: $white;
+  border-radius: $radius-2xl;
+  overflow: hidden;
+  box-shadow: $shadow-card;
+  transition: $transition-base;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+  }
+
+  &__img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+  }
+
+  &__content {
+    padding: 1.5rem;
+  }
+
+  &__cat {
+    font-family: $font-body;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: $brand-red;
+    margin-bottom: 0.5rem;
+  }
+
+  &__title {
+    font-family: $font-heading;
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: $dark;
+    line-height: 1.3;
+    margin-bottom: 0.75rem;
+  }
+
+  &__excerpt {
+    font-family: $font-body;
+    font-size: 0.85rem;
+    color: $gray-700;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  &__meta {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+
+    span {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-family: $font-body;
+      font-size: 0.75rem;
+      color: $gray-500;
+    }
+  }
+
+  &__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: $font-body;
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: $brand-red;
+    transition: $transition-base;
+
+    &:hover {
+      gap: 0.6rem;
+    }
+  }
+}
+
+// ─── Newsletter CTA ────────────────────────────────────────────────────────────
+.blog-cta {
+  background: linear-gradient(135deg, $brand-red 0%, darken($brand-red, 10%) 100%);
+  padding: 4rem 1rem;
+  max-width: 100%;
+
+  &__inner {
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  &__title {
+    font-family: $font-heading;
+    font-weight: 900;
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    color: $white;
+    margin-bottom: 0.75rem;
+  }
+
+  &__desc {
+    font-family: $font-body;
+    font-size: 1rem;
+    color: rgba(255,255,255,0.8);
+    margin-bottom: 1.5rem;
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+
+    @media (min-width: 480px) {
+      flex-direction: row;
+    }
+  }
+
+  &__input {
+    flex: 1;
+    padding: 0.875rem 1.25rem;
+    border: none;
+    border-radius: $radius-full;
+    font-size: 0.95rem;
+    outline: none;
+
+    &::placeholder {
+      color: $gray-500;
+    }
+  }
+
+  &__btn {
+    font-family: $font-heading;
+    font-weight: 800;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.875rem 2rem;
+    background: $dark;
+    color: $white;
+    border: none;
+    border-radius: $radius-full;
+    cursor: pointer;
+    transition: $transition-base;
+    white-space: nowrap;
+
+    &:hover {
+      background: lighten($dark, 10%);
+    }
+  }
+}

@@ -1,0 +1,491 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+// ── Page wrapper ──────────────────────────────────────────────────────────────
+.chef-detail-page {
+  min-height: 100vh;
+  background: $cream;
+}
+
+// ── Hero ──────────────────────────────────────────────────────────────────────
+.cd-hero {
+  height: 280px;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+
+  @include md { height: 340px; }
+
+  &__overlay {
+    @include absolute-fill;
+    background: rgba(0, 0, 0, 0.58);
+  }
+
+  &__content {
+    position: relative;
+    z-index: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 1.5rem;
+    max-width: 960px;
+    margin: 0 auto;
+
+    @include md { padding: 2rem; }
+  }
+
+  &__breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-family: $font-body;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 0;
+
+    a {
+      color: rgba(255, 255, 255, 0.85);
+      &:hover { color: #fff; text-decoration: underline; }
+    }
+
+    span { color: rgba(255, 255, 255, 0.6); }
+  }
+}
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+.cd-tabs {
+  background: #fff;
+  border-bottom: 1px solid $border-color;
+  position: sticky;
+  top: 64px;
+  z-index: 20;
+  overflow-x: auto;
+  @include scrollbar-hide;
+
+  &__inner {
+    display: flex;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+
+  &__tab {
+    flex-shrink: 0;
+    padding: 1rem 1.25rem;
+    font-family: $font-body;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #777;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: $transition-base;
+    white-space: nowrap;
+
+    &:hover { color: $brand-red; }
+
+    &--active {
+      color: $brand-red;
+      border-bottom-color: $brand-red;
+    }
+  }
+}
+
+// ── Body ──────────────────────────────────────────────────────────────────────
+.cd-body {
+  padding: 0 1rem;
+  &__inner {
+    max-width: 960px;
+    margin: 0 auto;
+    padding-bottom: 3rem;
+  }
+}
+
+// ── Stats ─────────────────────────────────────────────────────────────────────
+.cd-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin: 1.75rem 0;
+
+  @include md { grid-template-columns: repeat(4, 1fr); }
+
+  &__card {
+    background: #fff;
+    border: 1px solid $border-color;
+    border-radius: $radius-xl;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    box-shadow: $shadow-card;
+  }
+
+  &__value {
+    font-family: $font-heading;
+    font-size: 2rem;
+    font-weight: 900;
+    color: #16a34a;
+    margin: 0 0 0.25rem;
+  }
+
+  &__label {
+    font-family: $font-body;
+    font-size: 0.75rem;
+    color: #777;
+    margin: 0;
+  }
+}
+
+// ── Section spacing ───────────────────────────────────────────────────────────
+.cd-section {
+  margin-bottom: 1.25rem;
+}
+
+// ── Card ──────────────────────────────────────────────────────────────────────
+.cd-card {
+  background: #fff;
+  border: 1px solid $border-color;
+  border-radius: $radius-xl;
+  padding: 1.5rem;
+  box-shadow: $shadow-card;
+
+  &--awards {
+    margin-top: 1.25rem;
+  }
+
+  &__heading {
+    font-family: $font-heading;
+    font-weight: 800;
+    font-size: 1.05rem;
+    color: $dark;
+    margin: 0 0 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  &__sub {
+    font-family: $font-body;
+    font-size: 0.78rem;
+    font-weight: 400;
+    color: #999;
+  }
+
+  &__body {
+    font-family: $font-body;
+    font-size: 0.875rem;
+    color: #555;
+    line-height: 1.7;
+    margin: 0;
+  }
+
+  &__empty {
+    font-family: $font-body;
+    font-size: 0.875rem;
+    color: #999;
+    text-align: center;
+    padding: 2rem 0 1rem;
+    margin: 0;
+  }
+}
+
+// ── Awards ────────────────────────────────────────────────────────────────────
+.cd-awards {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.cd-award-item {
+  @include flex-col-center;
+  gap: 0.5rem;
+  min-width: 80px;
+
+  &__icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: rgba($brand-gold, 0.12);
+    @include flex-center;
+    color: $brand-gold;
+  }
+
+  &__label {
+    font-family: $font-body;
+    font-size: 0.75rem;
+    color: #666;
+    text-align: center;
+    margin: 0;
+  }
+}
+
+// ── Ratings Bars ──────────────────────────────────────────────────────────────
+.cd-ratings {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+
+  &__row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  &__star-label {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    font-family: $font-body;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: $dark;
+    min-width: 32px;
+  }
+
+  &__star-icon {
+    color: $brand-gold;
+    flex-shrink: 0;
+  }
+
+  &__bar-track {
+    flex: 1;
+    height: 10px;
+    background: $border-color;
+    border-radius: $radius-full;
+    overflow: hidden;
+  }
+
+  &__bar-fill {
+    height: 100%;
+    border-radius: $radius-full;
+    transition: width 0.6s ease;
+  }
+
+  &__count {
+    font-family: $font-body;
+    font-size: 0.8rem;
+    color: #888;
+    min-width: 28px;
+    text-align: right;
+  }
+}
+
+// ── Personal Information ──────────────────────────────────────────────────────
+.cd-personal {
+  @include flex-between;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+
+  &__left {
+    flex: 1;
+  }
+
+  &__avatar-wrap {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 2px solid $border-color;
+  }
+
+  &__avatar {
+    @include img-cover;
+  }
+
+  &__book-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    background: $gradient-red;
+    color: #fff;
+    font-family: $font-heading;
+    font-weight: 700;
+    font-size: 0.875rem;
+    padding: 0.6rem 1.25rem;
+    border-radius: $radius-full;
+    transition: $transition-base;
+    text-decoration: none;
+
+    &:hover {
+      box-shadow: $shadow-red;
+      transform: translateY(-1px);
+    }
+  }
+}
+
+// ── Book Chef For ─────────────────────────────────────────────────────────────
+.cd-book-for {
+  border-top: 1px solid $border-color;
+  padding-top: 1.25rem;
+
+  &__label {
+    font-family: $font-heading;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: $dark;
+    margin: 0 0 1rem;
+  }
+
+  &__grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.875rem;
+  }
+}
+
+.cd-service-chip {
+  @include flex-col-center;
+  gap: 0.4rem;
+  border: 1px solid $border-color;
+  border-radius: $radius-xl;
+  padding: 0.875rem 1rem;
+  min-width: 90px;
+  cursor: default;
+  transition: $transition-base;
+
+  &:hover {
+    border-color: $brand-red;
+    background: rgba($brand-red, 0.04);
+  }
+
+  &__icon {
+    color: $dark;
+    @include flex-center;
+  }
+
+  &__label {
+    font-family: $font-body;
+    font-size: 0.72rem;
+    color: #666;
+    text-align: center;
+    line-height: 1.3;
+  }
+}
+
+// ── Work Experience ────────────────────────────────────────────────────────────
+.cd-work-exp {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding-left: 1rem;
+  border-left: 2px solid $border-color;
+
+  &__item {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    position: relative;
+  }
+
+  &__dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: $brand-red;
+    flex-shrink: 0;
+    margin-top: 0.3rem;
+    position: absolute;
+    left: -1.375rem;
+  }
+
+  &__role {
+    font-family: $font-heading;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: $dark;
+    margin: 0 0 0.2rem;
+  }
+
+  &__detail {
+    font-family: $font-body;
+    font-size: 0.82rem;
+    color: #777;
+    margin: 0 0 0.15rem;
+  }
+
+  &__period {
+    font-family: $font-body;
+    font-size: 0.78rem;
+    color: $brand-red;
+    margin: 0;
+  }
+}
+
+// ── Book CTA ──────────────────────────────────────────────────────────────────
+.cd-book-cta {
+  background: $gradient-red;
+  padding: 2.5rem 1.5rem;
+
+  &__inner {
+    max-width: 960px;
+    margin: 0 auto;
+    @include flex-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  &__title {
+    font-family: $font-heading;
+    font-weight: 900;
+    font-size: 1.25rem;
+    color: #fff;
+    margin: 0 0 0.3rem;
+  }
+
+  &__sub {
+    font-family: $font-body;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.75);
+    margin: 0;
+  }
+
+  &__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #fff;
+    color: $brand-red;
+    font-family: $font-heading;
+    font-weight: 800;
+    font-size: 0.9rem;
+    padding: 0.75rem 1.75rem;
+    border-radius: $radius-full;
+    text-decoration: none;
+    flex-shrink: 0;
+    transition: $transition-base;
+
+    &:hover {
+      background: $cream;
+      transform: translateY(-1px);
+    }
+  }
+}
+
+// ── Not found ─────────────────────────────────────────────────────────────────
+.cd-not-found {
+  text-align: center;
+  padding: 8rem 1rem;
+
+  h2 {
+    font-family: $font-heading;
+    font-size: 1.75rem;
+    font-weight: 900;
+    color: $dark;
+  }
+
+  p {
+    font-family: $font-body;
+    color: #888;
+    margin: 0.5rem 0 1.5rem;
+  }
+
+  &__link {
+    font-family: $font-body;
+    color: $brand-red;
+    font-weight: 600;
+    text-decoration: underline;
+  }
+}

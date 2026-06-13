@@ -1,0 +1,99 @@
+@use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
+
+.account-page {
+
+  &__sidebar {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex-shrink: 0;
+    width: 260px;
+    background: $white;
+    border-radius: $radius-2xl;
+    box-shadow: $shadow-card;
+    overflow: hidden;
+    border: 1px solid $border-color;
+
+    @media (max-width: 767px) {
+      width: 100%;
+    }
+  }
+
+  &__nav-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__sidebar-title {
+    font-family: $font-heading;
+    font-size: 0.9375rem;
+    font-weight: 800;
+    color: #111;
+    padding: 1.125rem 1.25rem 0.875rem;
+    margin: 0;
+    border-bottom: 1px solid $border-color;
+  }
+
+  &__nav-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.8125rem 1.25rem;
+    background: transparent;
+    border: none;
+    font-family: $font-body;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #444;
+    cursor: pointer;
+    text-align: left;
+    transition: $transition-fast;
+    border-bottom: 1px solid #f5f5f5;
+
+    .account-page__nav-chevron {
+      margin-left: auto;
+      opacity: 0;
+      color: $brand-red;
+      transition: $transition-fast;
+    }
+
+    &:hover {
+      background: #f7f7f7;
+      color: $brand-red;
+
+      .account-page__nav-chevron {
+        opacity: 1;
+      }
+    }
+
+    &--active {
+      background: #efefef;
+      color: #111;
+      font-weight: 700;
+
+      .account-page__nav-chevron {
+        opacity: 1;
+        color: #999;
+      }
+    }
+
+    &--logout {
+      color: $brand-red;
+      border-bottom: none;
+
+      &:hover {
+        background: #fff0f0;
+        color: $brand-red-dark;
+      }
+    }
+  }
+
+  &__sidebar-divider {
+    height: 1px;
+    background: $border-color;
+    margin: 0.25rem 0;
+  }
+
+}

@@ -1,0 +1,76 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.how-section {
+  padding: 3.5rem 1rem;
+  background-color: $cream;
+  position: relative;
+  overflow: hidden;
+
+  @include md { padding: 5rem 1rem; }
+
+  // Dot-grid background pattern (replaces inline style)
+  &__bg-pattern {
+    @include absolute-fill;
+    opacity: 0.3;
+    background-image: radial-gradient(circle at 2px 2px, $border-color 1px, transparent 0);
+    background-size: 32px 32px;
+    pointer-events: none;
+  }
+
+  &__steps {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  &__step-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.25rem;
+    background: $white;
+    border-radius: $radius-2xl;
+    padding: 1.5rem;
+    box-shadow: $shadow-card;
+    cursor: pointer;
+    transition: $transition-medium;
+
+    &:hover {
+      box-shadow: $shadow-card-hover;
+      transform: translateY(-2px);
+    }
+  }
+
+  &__step-icon {
+    flex-shrink: 0;
+    width: 3rem;
+    height: 3rem;
+    border-radius: $radius-2xl;
+    @include flex-center;
+    font-size: 1.25rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+  }
+
+  &__step-divider {
+    flex: 1;
+    height: 1px;
+    background-color: #f3f4f6;
+  }
+
+  // Phone CTA card
+  &__cta-card {
+    background: $dark;
+    border-radius: $radius-4xl;
+    padding: 2.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  // Replaces bg-[radial-gradient(...)] inline style
+  &__cta-glow {
+    @include absolute-fill;
+    background: radial-gradient(ellipse 80% 80% at 50% 50%, rgba($brand-red, 0.15), transparent);
+    pointer-events: none;
+  }
+}

@@ -1,0 +1,351 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.vmc-page {
+  min-height: 100vh;
+  background: #f8fafc;
+  padding: 3.5rem 1rem 2rem;
+  font-family: $font-body;
+
+  @include md {
+    padding: 6rem 1rem 3rem;
+  }
+}
+
+.vmc-container {
+  max-width: 100%;
+  margin: 0 auto;
+
+  @include md {
+    max-width: 1200px;
+  }
+}
+
+.vmc-top-bar {
+  margin-bottom: 1.5rem;
+}
+
+.vmc-back-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #64748b;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: color 0.2s;
+
+  &:hover {
+    color: $brand-red;
+  }
+}
+
+.vmc-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  align-items: start;
+
+  @include lg {
+    grid-template-columns: 1fr 380px;
+  }
+}
+
+// ─── Items List Card ──────────────────────────────────────────────────────────
+.vmc-list-card {
+  display: flex;
+  flex-direction: column;
+  background: $white;
+  border-radius: $radius-2xl;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  padding: 1.5rem;
+  border: 1px solid #f1f5f9;
+
+  @include lg {
+    min-height: calc(100vh - 12rem);
+  }
+}
+
+.vmc-list-header {
+  display: flex;
+  padding: 0 1rem 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  font-weight: 700;
+  color: #94a3b8;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+
+  .col-items { flex: 2; }
+  .col-qty   { flex: 1; text-align: center; }
+  .col-price { flex: 1; text-align: right; }
+}
+
+.vmc-items {
+  min-height: 0;
+  overflow-y: auto;
+  flex: 1 1 auto;
+  max-height: calc(100vh - 24rem);
+}
+
+.vmc-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 1rem;
+  color: #94a3b8;
+  text-align: center;
+
+  svg { margin-bottom: 1rem; }
+  p { margin-bottom: 1.5rem; font-weight: 600; }
+  
+  .btn-red {
+    padding: 0.75rem 2rem;
+    border-radius: $radius-full;
+    background: $brand-red;
+    color: white;
+    font-weight: 700;
+  }
+}
+
+.vmc-row {
+  display: flex;
+  align-items: center;
+  padding: 1.25rem 1rem;
+  border-bottom: 1px dashed #f1f5f9;
+
+  &:last-child { border-bottom: none; }
+
+  &__item {
+    flex: 2;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  &__img-wrap {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f8fafc;
+    flex-shrink: 0;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  &__name {
+    font-weight: 600;
+    color: #1e293b;
+    font-size: 0.95rem;
+  }
+
+  &__qty {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+  }
+
+  &__price {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 1.5rem;
+  }
+
+  .price-val {
+    font-weight: 700;
+    color: #1e293b;
+    font-size: 0.95rem;
+    white-space: nowrap;
+  }
+
+  &__del {
+    background: none;
+    border: none;
+    color: #cbd5e1;
+    cursor: pointer;
+    transition: color 0.2s;
+
+    &:hover { color: $brand-red; }
+  }
+}
+
+// ─── Quantity Pill ────────────────────────────────────────────────────────────
+.vmc-qty-pill {
+  display: inline-flex;
+  align-items: center;
+  background: #f1f5f9;
+  padding: 4px;
+  border-radius: 50px;
+  gap: 0.75rem;
+
+  button {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: none;
+    background: white;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: all 0.2s;
+
+    &:hover { background: $brand-red; color: white; }
+  }
+
+  span {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #1e293b;
+    min-width: 12px;
+    text-align: center;
+  }
+}
+
+// ─── Sidebar & Summary ────────────────────────────────────────────────────────
+.vmc-sidebar {
+  position: static;
+  top: auto;
+
+  @include lg {
+    position: sticky;
+    top: 100px;
+  }
+}
+
+.vmc-summary-card {
+  background: $white;
+  border-radius: $radius-2xl;
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.06);
+  padding: 1.75rem;
+  border: 1px solid #f1f5f9;
+
+  &__title {
+    font-family: $font-heading;
+    font-weight: 900;
+    font-size: 1.25rem;
+    color: #1e293b;
+    margin: 0 0 1.5rem;
+  }
+
+  &__rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .label {
+      color: #64748b;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .val {
+      color: #1e293b;
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    &.discount .val {
+      color: #10b981; // green
+    }
+  }
+
+  &__total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1.25rem;
+    border-top: 1px dashed #e2e8f0;
+    margin-bottom: 1.75rem;
+
+    .label {
+      font-family: $font-heading;
+      font-weight: 900;
+      font-size: 1.15rem;
+      color: #1e293b;
+    }
+
+    .val {
+      font-family: $font-heading;
+      font-weight: 900;
+      font-size: 1.35rem;
+      color: #1e293b;
+    }
+  }
+
+  &__btn {
+    width: 100%;
+    padding: 1rem;
+    background: $brand-red;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-family: $font-heading;
+    font-weight: 800;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+
+    &:hover {
+      background: $brand-red-dark;
+      transform: translateY(-2px);
+    }
+
+    &:active { transform: translateY(0); }
+  }
+
+  &__notes {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: #f8fafc;
+    border-radius: 12px;
+    
+    p {
+      font-size: 0.75rem;
+      color: #94a3b8;
+      margin: 0;
+      line-height: 1.5;
+      &:first-child { margin-bottom: 4px; }
+    }
+  }
+}
+
+// ─── Add More Items ───────────────────────────────────────────────────────────
+.vmc-add-more {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 1rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.vmc-add-more-link {
+  color: #3b82f6;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: color 0.2s;
+  cursor: pointer;
+
+  &:hover {
+    color: #2563eb;
+    text-decoration: underline;
+  }
+}
+
+

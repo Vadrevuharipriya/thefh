@@ -1,0 +1,35 @@
+@use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
+
+.account-page {
+
+  &__info-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    background: $white;
+    border-radius: $radius-2xl;
+    border: 1px solid $border-color;
+    padding: 1.5rem;
+  }
+
+  &__info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  &__info-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  &__info-value {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #222;
+  }
+}

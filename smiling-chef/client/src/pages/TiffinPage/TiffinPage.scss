@@ -1,0 +1,443 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.tiffin-page {
+  display: block;
+  width: 100%;
+  padding-top: 4rem;
+}
+
+// ─── Hero ─────────────────────────────────────────────────────────────────────
+.tf-hero {
+  position: relative;
+  min-height: 42vh;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: 3.5rem;
+  padding-top: 4rem;
+
+  &__overlay {
+    @include absolute-fill;
+    background: linear-gradient(160deg, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.6) 60%, rgba(0,0,0,0.35) 100%);
+  }
+
+  &__content {
+    position: relative;
+    @include section-container;
+    width: 100%;
+  }
+
+  &__breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 1.1rem;
+
+    a, span {
+      font-family: $font-body;
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.6);
+      transition: $transition-base;
+    }
+    a:hover { color: $white; }
+    svg { color: rgba(255,255,255,0.35); flex-shrink: 0; }
+  }
+
+  &__title {
+    font-family: $font-heading;
+    font-weight: 900;
+    font-size: clamp(2.2rem, 6vw, 4rem);
+    color: $white;
+    line-height: 1.05;
+    margin-bottom: 0.85rem;
+  }
+
+  &__title-accent { color: $brand-gold; }
+
+  &__sub {
+    font-family: $font-body;
+    font-size: 1rem;
+    color: rgba(255,255,255,0.72);
+    max-width: 480px;
+    line-height: 1.7;
+  }
+}
+
+// ─── Trust Bar ─────────────────────────────────────────────────────────────────
+.tf-trust-bar {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  background: $white;
+  border-bottom: 1px solid $border-color;
+  box-shadow: $shadow-card;
+
+  @include md { grid-template-columns: repeat(4, 1fr); }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 1.1rem 1.25rem;
+    border-right: 1px solid $border-color;
+
+    &:last-child { border-right: none; }
+  }
+
+  &__icon { font-size: 1.4rem; flex-shrink: 0; }
+
+  &__label {
+    font-family: $font-heading;
+    font-weight: 800;
+    font-size: 0.82rem;
+    color: $dark;
+    line-height: 1.3;
+  }
+}
+
+// ─── Body Layout ───────────────────────────────────────────────────────────────
+.tf-body {
+  background: $cream;
+  padding: 3.5rem 1rem 5rem;
+
+  &__inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    align-items: start;
+
+    @include lg {
+      grid-template-columns: 1fr 340px;
+      gap: 2.5rem;
+      padding: 0 2rem;
+    }
+  }
+
+  &__left { display: flex; flex-direction: column; }
+}
+
+// ─── Form Card ────────────────────────────────────────────────────────────────
+.tf-form-card {
+  background: $white;
+  border-radius: $radius-3xl;
+  border: 1px solid $border-color;
+  box-shadow: $shadow-card;
+  padding: 2rem 1.5rem;
+
+  @include md { padding: 2.5rem 2.25rem; }
+
+  &__heading {
+    font-family: $font-heading;
+    font-weight: 900;
+    font-size: clamp(1.6rem, 4vw, 2.2rem);
+    color: $dark;
+    margin-bottom: 0.25rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid $border-color;
+  }
+}
+
+// ─── Form Internals ───────────────────────────────────────────────────────────
+.tf-form {
+  &__subtitle {
+    font-family: $font-body;
+    font-size: 0.88rem;
+    color: $brand-gold;
+    font-weight: 700;
+    margin: 1rem 0 1.75rem;
+    line-height: 1.55;
+  }
+
+  &__row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+
+    @include md { grid-template-columns: 1fr 1fr; }
+  }
+
+  &__group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    margin-bottom: 1.25rem;
+  }
+
+  &__row &__group { margin-bottom: 0; }
+
+  &__label {
+    font-family: $font-heading;
+    font-weight: 800;
+    font-size: 0.72rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: #555;
+  }
+
+  &__req { color: $brand-red; margin-right: 0.15rem; }
+
+  &__input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1.5px solid $border-color;
+    border-radius: $radius-lg;
+    font-family: $font-body;
+    font-size: 0.9rem;
+    color: $dark;
+    background: $white;
+    outline: none;
+    transition: $transition-base;
+
+    &::placeholder { color: #b0b0b0; }
+    &:focus { border-color: $brand-red; box-shadow: 0 0 0 3px rgba($brand-red, 0.1); }
+  }
+
+  &__select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1.5px solid $border-color;
+    border-radius: $radius-lg;
+    font-family: $font-body;
+    font-size: 0.9rem;
+    color: $dark;
+    background: $white;
+    outline: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.85rem center;
+    cursor: pointer;
+    transition: $transition-base;
+
+    &:focus { border-color: $brand-red; box-shadow: 0 0 0 3px rgba($brand-red, 0.1); }
+  }
+
+  &__footer {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.85rem;
+    margin-top: 2rem;
+    padding-top: 1.75rem;
+    border-top: 1px solid $border-color;
+  }
+
+  &__submit {
+    font-family: $font-heading;
+    font-weight: 900;
+    font-size: 0.95rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: $white;
+    background: $gradient-red;
+    border: none;
+    border-radius: $radius-full;
+    padding: 0.95rem 2.75rem;
+    cursor: pointer;
+    box-shadow: $shadow-red;
+    transition: $transition-medium;
+
+    &:hover { box-shadow: 0 10px 30px rgba($brand-red, 0.5); transform: translateY(-2px); }
+    &:active { transform: translateY(0); }
+  }
+
+  &__privacy {
+    font-family: $font-body;
+    font-size: 0.78rem;
+    color: #aaa;
+    margin: 0;
+  }
+}
+
+// ─── Toggle Buttons (Meals) ────────────────────────────────────────────────────
+.tf-toggle-group {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  overflow-x: auto;
+  @include scrollbar-hide;
+}
+
+.tf-toggle-btn {
+  flex-shrink: 0;
+  font-family: $font-body;
+  font-size: 0.83rem;
+  font-weight: 600;
+  padding: 0.5rem 1.1rem;
+  border: 1.5px solid $border-color;
+  border-radius: $radius-full;
+  background: $white;
+  color: #555;
+  cursor: pointer;
+  transition: $transition-base;
+  white-space: nowrap;
+
+  &:hover { border-color: $brand-red; color: $brand-red; background: rgba($brand-red, 0.04); }
+
+  &--active {
+    background: $gradient-red;
+    color: $white;
+    border-color: $brand-red;
+    box-shadow: 0 2px 10px rgba($brand-red, 0.28);
+
+    &:hover { background: $gradient-red; color: $white; box-shadow: 0 4px 14px rgba($brand-red, 0.4); }
+  }
+}
+
+// ─── Success State ─────────────────────────────────────────────────────────────
+.tf-success {
+  @include flex-col-center;
+  text-align: center;
+  padding: 3rem 1.5rem;
+  gap: 1rem;
+
+  &__icon { color: #22c55e; margin-bottom: 0.5rem; }
+
+  &__title { font-family: $font-heading; font-weight: 900; font-size: 1.8rem; color: $dark; margin: 0; }
+
+  &__msg {
+    font-family: $font-body;
+    font-size: 0.95rem;
+    color: #555;
+    max-width: 380px;
+    line-height: 1.7;
+    margin: 0;
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: center;
+    margin-top: 0.5rem;
+  }
+
+  &__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: $font-heading;
+    font-weight: 800;
+    font-size: 0.9rem;
+    padding: 0.8rem 1.75rem;
+    border-radius: $radius-full;
+    transition: $transition-base;
+
+    &--primary {
+      background: $gradient-red;
+      color: $white;
+      box-shadow: $shadow-red;
+      &:hover { box-shadow: 0 8px 24px rgba($brand-red,0.45); transform: translateY(-2px); }
+    }
+
+    &--whatsapp {
+      background: #25d366;
+      color: $white;
+      box-shadow: 0 4px 16px rgba(37,211,102,0.3);
+      &:hover { box-shadow: 0 8px 24px rgba(37,211,102,0.45); transform: translateY(-2px); }
+    }
+  }
+}
+
+// ─── Aside ────────────────────────────────────────────────────────────────────
+.tf-aside {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  position: sticky;
+  top: 5.5rem;
+
+  &__card {
+    background: $white;
+    border-radius: $radius-2xl;
+    border: 1px solid $border-color;
+    box-shadow: $shadow-card;
+    padding: 1.5rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+
+    &--whatsapp {
+      background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+      border-color: transparent;
+    }
+  }
+
+  &__emoji { font-size: 1.75rem; }
+
+  &__title {
+    font-family: $font-heading;
+    font-weight: 900;
+    font-size: 1.05rem;
+    color: $dark;
+    margin: 0;
+
+    &--white { color: $white; }
+  }
+
+  &__desc {
+    font-family: $font-body;
+    font-size: 0.82rem;
+    color: #777;
+    line-height: 1.6;
+    margin: 0;
+
+    &--white { color: rgba(255,255,255,0.8); }
+  }
+
+  &__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: $font-heading;
+    font-weight: 800;
+    font-size: 0.85rem;
+    padding: 0.65rem 1.25rem;
+    border-radius: $radius-full;
+    transition: $transition-base;
+    justify-content: center;
+    margin-top: 0.2rem;
+
+    &--red { background: $gradient-red; color: $white; box-shadow: $shadow-red; &:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba($brand-red,0.45); } }
+    &--outline { border: 1.5px solid $border-color; color: #555; background: $white; &:hover { border-color: $brand-red; color: $brand-red; background: rgba($brand-red,0.04); } }
+    &--white { background: $white; color: #128c7e; font-weight: 900; &:hover { background: #f0fdf4; transform: translateY(-2px); } }
+  }
+
+  &__info {
+    background: $white;
+    border-radius: $radius-2xl;
+    border: 1px solid $border-color;
+    box-shadow: $shadow-card;
+    padding: 1.5rem 1.25rem;
+  }
+
+  &__info-title {
+    font-family: $font-heading;
+    font-weight: 800;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #888;
+    margin: 0 0 0.85rem;
+  }
+
+  &__check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-family: $font-body;
+    font-size: 0.82rem;
+    color: #555;
+    line-height: 1.5;
+
+    &:last-child { margin-bottom: 0; }
+  }
+
+  &__check-icon { color: $brand-red; flex-shrink: 0; margin-top: 0.1rem; }
+}

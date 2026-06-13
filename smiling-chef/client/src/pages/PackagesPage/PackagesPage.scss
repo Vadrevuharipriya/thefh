@@ -1,0 +1,615 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.packages-page {
+  width: 100%;
+  padding-top: 4rem; // navbar offset
+}
+
+.pkg-section-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1rem;
+
+  @include lg {
+    padding: 0 2rem;
+  }
+
+  &--narrow {
+    max-width: 760px;
+  }
+}
+
+// ─── Hero ─────────────────────────────────────────────────────────────────────
+.pkg-hero {
+  position: relative;
+  min-height: 60vh;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: 4rem;
+  padding-top: 4rem;
+
+  &__overlay {
+    @include absolute-fill;
+    background: linear-gradient(160deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.65) 55%, rgba(0,0,0,0.3) 100%);
+  }
+
+  &__content {
+    position: relative;
+    @include section-container;
+    width: 100%;
+  }
+
+  &__breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+
+    a, span {
+      font-family: $font-body;
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.6);
+      transition: $transition-base;
+    }
+    a:hover { color: $white; }
+    svg { color: rgba(255,255,255,0.35); flex-shrink: 0; }
+  }
+
+  &__badge {
+    display: inline-block;
+    font-family: $font-heading;
+    font-weight: 800;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: $brand-gold;
+    background: rgba($brand-gold, 0.12);
+    border: 1px solid rgba($brand-gold, 0.3);
+    border-radius: $radius-full;
+    padding: 0.35rem 0.9rem;
+    margin-bottom: 1rem;
+  }
+
+  &__title {
+    font-family: $font-heading;
+    font-weight: 900;
+    font-size: clamp(2rem, 6vw, 3.75rem);
+    color: $white;
+    line-height: 1.1;
+    margin-bottom: 1rem;
+  }
+
+  &__accent { color: $brand-gold; }
+
+  &__sub {
+    font-family: $font-body;
+    font-size: 1rem;
+    color: rgba(255,255,255,0.75);
+    max-width: 540px;
+    line-height: 1.75;
+    margin-bottom: 2rem;
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+  }
+
+  &__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: $font-heading;
+    font-weight: 800;
+    font-size: 0.9rem;
+    padding: 0.85rem 1.75rem;
+    border-radius: $radius-full;
+    transition: $transition-medium;
+
+    &--primary {
+      background: $gradient-red;
+      color: $white;
+      box-shadow: $shadow-red;
+      &:hover { box-shadow: 0 10px 30px rgba($brand-red, 0.5); transform: translateY(-2px); }
+    }
+
+    &--ghost {
+      background: rgba(255,255,255,0.1);
+      color: $white;
+      border: 1.5px solid rgba(255,255,255,0.35);
+      backdrop-filter: blur(8px);
+      &:hover { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.6); transform: translateY(-2px); }
+    }
+  }
+}
+
+// ─── Stats Strip ──────────────────────────────────────────────────────────────
+.pkg-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  background: $dark;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+
+  @include md { grid-template-columns: repeat(4, 1fr); }
+
+  &__item {
+    padding: 1.5rem 1.25rem;
+    border-right: 1px solid rgba(255,255,255,0.06);
+    text-align: center;
+    &:last-child { border-right: none; }
+    &:nth-child(2) { @include md { border-right: 1px solid rgba(255,255,255,0.06); } }
+  }
+
+  &__value {
+    font-family: $font-heading;
+    font-weight: 900;
+    font-size: 1.75rem;
+    color: $brand-gold;
+    margin: 0 0 0.15rem;
+  }
+
+  &__label {
+    font-family: $font-body;
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.5);
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+}
+
+// ─── Packages Section ─────────────────────────────────────────────────────────
+.pkg-packages {
+  background: $cream;
+  padding: 5rem 1rem;
+
+  &__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    align-items: start;
+
+    @include sm { grid-template-columns: repeat(2, 1fr); }
+    @include xl { grid-template-columns: repeat(4, 1fr); align-items: center; }
+  }
+}
+
+.pkg-card {
+  position: relative;
+  background: $white;
+  border: 1.5px solid $border-color;
+  border-radius: $radius-3xl;
+  padding: 1.75rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  transition: $transition-medium;
+
+  &:hover {
+    box-shadow: $shadow-card-hover;
+    transform: translateY(-4px);
+  }
+
+  &--featured {
+    background: $gradient-red;
+    border-color: transparent;
+    box-shadow: $shadow-red;
+    transform: translateY(-6px);
+
+    @include xl { transform: translateY(-10px); }
+
+    &:hover {
+      box-shadow: 0 20px 50px rgba($brand-red, 0.45);
+      transform: translateY(-12px);
+    }
+
+    .pkg-card__name       { color: $white; }
+    .pkg-card__guests     { color: rgba(255,255,255,0.7); svg { color: rgba(255,255,255,0.5); } }
+    .pkg-card__price-value { color: $white; }
+    .pkg-card__price-unit  { color: rgba(255,255,255,0.6); }
+    .pkg-card__list        { border-top-color: rgba(255,255,255,0.15); border-bottom-color: rgba(255,255,255,0.15); }
+    .pkg-card__item        { color: rgba(255,255,255,0.9); }
+    .pkg-card__check       { color: $brand-gold; }
+  }
+
+  &__tag {
+    position: absolute;
+    top: -0.8rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: $brand-gold;
+    color: $dark;
+    font-family: $font-heading;
+    font-weight: 900;
+    font-size: 0.64rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.9rem;
+    border-radius: $radius-full;
+    white-space: nowrap;
+    box-shadow: 0 2px 10px rgba($brand-gold, 0.35);
+  }
+
+  &__header {
+    text-align: center;
+    padding-bottom: 1.25rem;
+  }
+
+  &__emoji {
+    font-size: 2.25rem;
+    display: block;
+    margin-bottom: 0.5rem;
+    line-height: 1;
+  }
+
+  &__name {
+    font-family: $font-heading;
+    font-weight: 900;
+    font-size: 1.15rem;
+    color: $dark;
+    margin: 0 0 0.35rem;
+  }
+
+  &__guests {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-family: $font-body;
+    font-size: 0.78rem;
+    color: #999;
+    margin-bottom: 0.85rem;
+  }
+
+  &__price {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.2rem;
+  }
+
+  &__price-value {
+    font-family: $font-heading;
+    font-weight: 900;
+    font-size: 2.35rem;
+    color: $brand-red;
+    line-height: 1;
+  }
+
+  &__price-unit {
+    font-family: $font-body;
+    font-size: 0.8rem;
+    color: #aaa;
+  }
+
+  &__list {
+    list-style: none;
+    padding: 1.25rem 0;
+    margin: 0;
+    border-top: 1px solid $border-color;
+    border-bottom: 1px solid $border-color;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    flex: 1;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: $font-body;
+    font-size: 0.84rem;
+    color: $dark;
+    line-height: 1.4;
+  }
+
+  &__check {
+    flex-shrink: 0;
+    color: $brand-red;
+  }
+
+  &__cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-family: $font-heading;
+    font-weight: 800;
+    font-size: 0.875rem;
+    padding: 0.875rem 1.5rem;
+    border-radius: $radius-full;
+    margin-top: 1.25rem;
+    transition: $transition-medium;
+    width: 100%;
+
+    &--red {
+      background: $gradient-red;
+      color: $white;
+      box-shadow: 0 4px 16px rgba($brand-red, 0.22);
+      &:hover { box-shadow: $shadow-red; transform: translateY(-2px); }
+    }
+
+    &--white {
+      background: $white;
+      color: $brand-red;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+      &:hover { background: $cream; transform: translateY(-2px); }
+    }
+  }
+}
+
+// ─── Inclusions Section ───────────────────────────────────────────────────────
+.pkg-inclusions {
+  background: $white;
+  padding: 5rem 1rem;
+
+  &__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+
+    @include sm { grid-template-columns: repeat(2, 1fr); }
+    @include lg { grid-template-columns: repeat(3, 1fr); }
+  }
+}
+
+.pkg-inclusion-card {
+  background: $cream;
+  border: 1px solid $border-color;
+  border-radius: $radius-2xl;
+  padding: 1.75rem 1.5rem;
+  transition: $transition-medium;
+
+  &:hover {
+    border-color: rgba($brand-red, 0.25);
+    box-shadow: $shadow-card-hover;
+    transform: translateY(-3px);
+  }
+
+  &__icon {
+    font-size: 1.85rem;
+    display: block;
+    margin-bottom: 0.85rem;
+    line-height: 1;
+  }
+
+  &__title {
+    font-family: $font-heading;
+    font-weight: 800;
+    font-size: 1rem;
+    color: $dark;
+    margin: 0 0 0.4rem;
+  }
+
+  &__desc {
+    font-family: $font-body;
+    font-size: 0.845rem;
+    color: #666;
+    line-height: 1.7;
+    margin: 0;
+  }
+}
+
+// ─── Add-Ons Section ──────────────────────────────────────────────────────────
+.pkg-addons {
+  background: $dark;
+  padding: 5rem 1rem;
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+
+    @include md { grid-template-columns: repeat(3, 1fr); }
+    @include lg { grid-template-columns: repeat(6, 1fr); }
+  }
+
+  &__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255,255,255,0.08);
+    color: $white;
+    border: 1.5px solid rgba(255,255,255,0.2);
+    font-family: $font-heading;
+    font-weight: 800;
+    font-size: 0.875rem;
+    padding: 0.875rem 2rem;
+    border-radius: $radius-full;
+    transition: $transition-medium;
+    backdrop-filter: blur(8px);
+
+    &:hover {
+      background: rgba(255,255,255,0.14);
+      border-color: rgba(255,255,255,0.4);
+      transform: translateY(-2px);
+    }
+  }
+}
+
+.pkg-addon-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: $radius-2xl;
+  padding: 1.5rem 1rem;
+  text-align: center;
+  transition: $transition-medium;
+
+  &:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba($brand-gold, 0.3);
+    transform: translateY(-3px);
+  }
+
+  &__emoji {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 0.65rem;
+    line-height: 1;
+  }
+
+  &__title {
+    font-family: $font-heading;
+    font-weight: 800;
+    font-size: 0.82rem;
+    color: $white;
+    margin: 0 0 0.35rem;
+    line-height: 1.35;
+  }
+
+  &__price {
+    font-family: $font-body;
+    font-size: 0.78rem;
+    color: $brand-gold;
+    margin: 0;
+    font-weight: 700;
+  }
+}
+
+// ─── FAQ Section ──────────────────────────────────────────────────────────────
+.pkg-faq {
+  background: $cream;
+  padding: 5rem 1rem;
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  &__item {
+    background: $white;
+    border: 1.5px solid $border-color;
+    border-radius: $radius-2xl;
+    overflow: hidden;
+    transition: $transition-base;
+
+    &--open {
+      border-color: rgba($brand-red, 0.25);
+      box-shadow: 0 4px 20px rgba($brand-red, 0.08);
+    }
+  }
+
+  &__question {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    font-family: $font-heading;
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: $dark;
+    text-align: left;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: $transition-base;
+    line-height: 1.4;
+
+    &:hover { color: $brand-red; }
+  }
+
+  &__chevron {
+    flex-shrink: 0;
+    color: #bbb;
+    transition: transform 0.25s ease, color 0.2s ease;
+
+    &--open {
+      transform: rotate(180deg);
+      color: $brand-red;
+    }
+  }
+
+  &__answer {
+    font-family: $font-body;
+    font-size: 0.9rem;
+    color: #555;
+    line-height: 1.8;
+    padding: 0 1.5rem 1.25rem;
+    margin: 0;
+    border-top: 1px solid $border-color;
+    padding-top: 1rem;
+  }
+}
+
+// ─── CTA Strip ────────────────────────────────────────────────────────────────
+.pkg-cta {
+  background: $gradient-red;
+  padding: 5rem 1rem;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 320px; height: 320px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+    pointer-events: none;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -60px; left: -60px;
+    width: 240px; height: 240px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+    pointer-events: none;
+  }
+
+  &__inner {
+    max-width: 800px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  &__emoji {
+    font-size: 2.5rem;
+    text-align: center;
+    display: block;
+    margin-bottom: 1rem;
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+
+  &__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: $font-heading;
+    font-weight: 900;
+    font-size: 0.9rem;
+    padding: 1rem 2.25rem;
+    border-radius: $radius-full;
+    transition: $transition-medium;
+
+    &--white {
+      background: $white;
+      color: $brand-red;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      &:hover { background: $cream; transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,0.2); }
+    }
+
+    &--outline {
+      background: rgba(255,255,255,0.1);
+      color: $white;
+      border: 1.5px solid rgba(255,255,255,0.35);
+      backdrop-filter: blur(8px);
+      &:hover { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.6); transform: translateY(-2px); }
+    }
+  }
+}

@@ -1,0 +1,95 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.stats-strip {
+  background-color: $dark;
+  padding: 3rem 1rem;
+  position: relative;
+  overflow: hidden;
+  
+  &__glow {
+    @include absolute-fill;
+    background: radial-gradient(ellipse 60% 80% at 50% 50%, rgba($brand-red, 0.12), transparent);
+    pointer-events: none;
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    text-align: center;
+
+    @include md {
+      flex-direction: row;
+      text-align: left;
+      gap: 2rem;
+    }
+  }
+
+  &__text-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  &__title {
+    font-family: $font-heading;
+    font-weight: 800;
+    font-size: 1.4rem;
+    color: $white;
+    line-height: 1.2;
+
+    @include sm { font-size: 1.75rem; }
+
+    @include md {
+      font-size: 2rem;
+    }
+  }
+
+  &__subtitle {
+    font-family: $font-body;
+    font-size: 1rem;
+    color: rgba($white, 0.8);
+    margin: 0;
+
+    @include md {
+      font-size: 1.125rem;
+    }
+  }
+
+  &__description {
+    font-family: $font-body;
+    font-size: 0.875rem;
+    color: rgba($white, 0.6);
+    margin: 0;
+
+    @include md {
+      font-size: 1rem;
+    }
+  }
+
+  &__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: $gradient-red;
+    color: $white;
+    font-family: $font-heading;
+    font-weight: 700;
+    font-size: 1rem;
+    padding: 1rem 2rem;
+    border-radius: $radius-full;
+    text-decoration: none;
+    transition: $transition-base;
+    box-shadow: $shadow-red;
+    white-space: nowrap;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba($brand-red, 0.5);
+    }
+  }
+}

@@ -1,0 +1,59 @@
+@use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
+.account-page {
+  &__payment-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+
+  &__payment-card {
+    background: $white;
+    border: 1.5px solid $border-color;
+    border-radius: $radius-2xl;
+    padding: 1.125rem;
+    font-size: 0.875rem;
+    color: #555;
+    transition: $transition-fast;
+
+    &:hover {
+      box-shadow: $shadow-card;
+    }
+  }
+
+  &__payment-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+  }
+
+  &__payment-type {
+    font-weight: 700;
+    color: #222;
+    font-size: 0.875rem;
+  }
+
+  &__payment-actions {
+    display: flex;
+    gap: 0.4rem;
+  }
+
+  &__payment-details {
+    color: #888;
+    font-size: 0.8125rem;
+  }
+
+  &__default-badge {
+    display: inline-block;
+    background: #dcfce7;
+    color: #166534;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.15rem 0.5rem;
+    border-radius: $radius-full;
+    margin-top: 0.5rem;
+  }
+}

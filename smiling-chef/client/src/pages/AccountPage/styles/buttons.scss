@@ -1,0 +1,75 @@
+@use '../../../App.scss' as *;
+@use '../../../styles/mixins' as *;
+.account-page {
+
+  &__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.625rem 1.25rem;
+    border-radius: 10px;
+    // font-family: $font-body;
+    font-weight: 700;
+    font-size: 0.875rem;
+    cursor: pointer;
+    // transition: $transition-fast;
+    border: 1.5px solid ;
+    background: white;
+    color: #444;
+
+    &:hover {
+      border-color: #aaa;
+      background: #f9f9f9;
+    }
+
+    &--primary {
+      background: red;
+      color: white;
+      border-color: red;
+
+      &:hover {
+        background: darkred;
+        border-color: darkred;
+      }
+    }
+
+    &--outline {
+      background: transparent;
+      color: red;
+      border-color: red;
+
+      &:hover {
+        background: red;
+        color: white;
+      }
+    }
+  }
+
+  &__icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 20px;
+    // border: 1px solid $border-color;
+    background: white;
+    color: #666;
+    cursor: pointer;
+    // transition: $transition-fast;
+    flex-shrink: 0;
+
+    &:hover {
+      background: #f5f5f5;
+      color: #333;
+    }
+
+    &--danger {
+      &:hover {
+        background: #fee2e2;
+        border-color: #fca5a5;
+        color: red;
+      }
+    }
+  }
+}

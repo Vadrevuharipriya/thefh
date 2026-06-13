@@ -1,0 +1,55 @@
+@use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
+.account-page {
+
+  &__addresses {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
+  }
+
+  &__address-card {
+    background: $white;
+    border: 1.5px solid $border-color;
+    border-radius: $radius-2xl;
+    padding: 1.125rem;
+    font-size: 0.875rem;
+    color: #555;
+    line-height: 1.55;
+    transition: $transition-fast;
+
+    &:hover {
+      box-shadow: $shadow-card;
+    }
+  }
+
+  &__address-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+  }
+
+  &__address-label {
+    background: #f0f0f0;
+    color: #333;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.2rem 0.6rem;
+    border-radius: $radius-full;
+  }
+
+  &__address-name {
+    font-weight: 700;
+    color: #222;
+    margin-bottom: 0.2rem;
+  }
+
+  &__address-phone {
+    color: #888;
+    font-size: 0.8125rem;
+    margin-top: 0.25rem;
+  }
+}

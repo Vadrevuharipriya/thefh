@@ -1,0 +1,153 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.footer {
+  background-color: $dark;
+  color: #9ca3af;
+
+  // ---- Partner CTA Banner ----
+  &__partner-cta {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+
+    &-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 3rem 1rem;
+    }
+
+    &-card {
+      background: $gradient-red;
+      border-radius: $radius-3xl;
+      padding: 2rem 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+      position: relative;
+      overflow: hidden;
+
+      @include md {
+        flex-direction: row;
+        padding: 3rem;
+      }
+    }
+
+    // Replaces the inline bg-[radial-gradient(...)] overlay
+    &-glow {
+      @include absolute-fill;
+      background: radial-gradient(ellipse 80% 80% at 80% 50%, rgba(255, 255, 255, 0.05), transparent);
+      pointer-events: none;
+    }
+  }
+
+  // ---- Main footer grid ----
+  &__main {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 3.5rem 1rem;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+
+    @include md { grid-template-columns: repeat(2, 1fr); }
+    @include lg { grid-template-columns: 2fr 1fr 1fr 1fr 1fr; }
+  }
+
+  // ---- Social icons ----
+  &__social-icon {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: $radius-xl;
+    background: rgba(255, 255, 255, 0.05);
+    @include flex-center;
+    transition: $transition-base;
+
+    &:hover {
+      background: $brand-red;
+
+      svg { color: $white; }
+    }
+
+    svg {
+      color: #9ca3af;
+      transition: $transition-base;
+    }
+  }
+
+  // ---- Bottom bar ----
+  &__bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 1.25rem 1rem 5rem; // extra bottom padding for floating WhatsApp btn on mobile
+
+    @include sm { padding: 1.25rem 1rem; }
+
+    &-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+      text-align: center;
+
+      @include sm {
+        flex-direction: row;
+        justify-content: space-between;
+        text-align: left;
+      }
+    }
+  }
+
+  // ---- Map Section ----
+  &__map {
+    padding: 2rem 1rem;
+
+    &-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+
+      @include md {
+        flex-direction: row;
+        align-items: stretch;
+        gap: 2rem;
+      }
+    }
+
+    &-container {
+      width: 100%;
+      min-height: 200px;
+      border-radius: $radius-xl;
+      overflow: hidden;
+
+      @include md {
+        width: 55%;
+        min-height: 250px;
+      }
+
+      iframe {
+        display: block;
+      }
+    }
+
+    &-info {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+
+      @include md {
+        width: 45%;
+        padding: 1rem 0;
+      }
+    }
+  }
+
+  &--hide-mobile {
+    @media (max-width: 1023px) {
+      display: none;
+    }
+  }
+}

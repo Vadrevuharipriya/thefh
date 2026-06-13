@@ -1,0 +1,75 @@
+// =============================================
+// Brand Colors
+// =============================================
+$brand-red: #C1272D;
+$brand-red-dark: #921E23;
+$brand-red-light: #E84040;
+$brand-gold: #DA9100;
+$brand-gold-light: #F5C842;
+
+// =============================================
+// Background / Surface Colors
+// =============================================
+$cream: #FFF8F2;
+$cream-dark: #F5EDE3;
+$dark: #0F0D0B;
+$dark-surface: #1A1614;
+$border-color: #E8E0D6;
+$white: #ffffff;
+
+// =============================================
+// Typography
+// =============================================
+$font-heading: 'Catamaran', sans-serif;
+$font-body: 'Nunito Sans', sans-serif;
+
+// =============================================
+// Shadows
+// =============================================
+$shadow-card: 0 2px 16px rgba(0, 0, 0, 0.07);
+$shadow-card-hover: 0 12px 40px rgba(0, 0, 0, 0.15);
+$shadow-red: 0 8px 32px rgba(193, 39, 45, 0.35);
+$shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.12);
+
+// =============================================
+// Border Radius
+// =============================================
+$radius-lg: 8px;
+$radius-xl: 12px;
+$radius-2xl: 16px;
+$radius-3xl: 24px;
+$radius-4xl: 32px;
+$radius-full: 9999px;
+
+// =============================================
+// Gradients
+// =============================================
+$gradient-red: linear-gradient(135deg, $brand-red 0%, $brand-red-dark 100%);
+$gradient-gold: linear-gradient(135deg, $brand-gold 0%, $brand-gold-light 100%);
+$gradient-dark: linear-gradient(135deg, $dark 0%, $dark-surface 100%);
+$gradient-card: linear-gradient(to top, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0.2) 50%, transparent 100%);
+$gradient-text: linear-gradient(135deg, $brand-red 0%, $brand-gold 100%);
+$gradient-hero: linear-gradient(105deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.5) 50%, rgba(0, 0, 0, 0.15) 100%);
+
+// =============================================
+// Transitions
+// =============================================
+$transition-fast: all 0.15s ease;
+$transition-base: all 0.2s ease;
+$transition-medium: all 0.3s ease;
+$transition-slow: all 0.7s ease;
+
+// =============================================
+// Breakpoints
+// =============================================
+$bp-sm: 640px;
+$bp-md: 768px;
+$bp-lg: 1024px;
+$bp-xl: 1280px;
+
+// =============================================
+// Z-indices
+// =============================================
+$z-navbar: 50;
+$z-dropdown: 50;
+$z-floating: 50;

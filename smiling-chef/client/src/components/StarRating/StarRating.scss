@@ -1,0 +1,14 @@
+@use '../../styles/variables' as *;
+
+.star-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+
+  &__star {
+    flex-shrink: 0;
+
+    &--filled { color: $brand-gold; }
+    &--empty  { color: #d1d5db; }
+  }
+}
