@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import OrderInquiry from '../models/OrderInquiry.js';
 import Order from '../models/Order.js';
-import { sendOrderInquiryNotification } from '../services/whatsappService.js';
+// import { sendOrderInquiryNotification } from '../services/whatsappService.js';
 import { generateSecureOTP, validateOTP } from '../utils/otpUtils.js';
 import generateQuotationPDF from '../services/pdfService.js';
 import sendQuotationEmail from '../services/emailService.js';
@@ -109,20 +109,27 @@ export const postOrderInquiry = async (req, res) => {
         pdfBase64 = pdfBuffer.toString('base64');
 
         if (email) {
-          await sendQuotationEmail({
-            to: email,
-            customerName: name,
-            quotationNumber,
-            pdfBuffer
-          });
-          console.log('[Email] Quotation sent to:', email);
+          try {
+            await sendQuotationEmail({
+              to: email,
+              customerName: name,
+              quotationNumber,
+              pdfBuffer
+            });
+            console.log('[Email] Quotation sent to:', email);
+          } catch (emailErr) {
+            console.error('[Email] Failed to send quotation (non-fatal):', emailErr.message);
+          }
         }
-      } catch (emailErr) {
-        console.error('[Email] Failed to send quotation:', emailErr.message);
-        console.error('[Email] Full error:', emailErr);
+      } catch (pdfErr) {
+        console.error('[PDF/Email] Failed to generate PDF or send email:', pdfErr.message);
+        console.error('[PDF/Email] Full error:', pdfErr);
       }
+
     }
 
+    // TEMPORARILY DISABLED: WhatsApp notification
+    /*
     if (phone) {
       console.log('[Backend] Sending WhatsApp inquiry notification to:', phone);
       // sendOrderInquiryNotification(phone, created)
@@ -134,6 +141,7 @@ export const postOrderInquiry = async (req, res) => {
     } else {
       console.warn('[Backend] No mobile provided in order-inquiry, skipping WhatsApp');
     }
+    */
 
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith('Bearer ')) {
@@ -215,7 +223,8 @@ export const updateOrderInquiryStatus = async (req, res) => {
 
         console.log(`[Backend] Generated OTP: ${otp} for orderInquiry ${orderInquiry._id}`);
 
-        // Send OTP via WhatsApp Business API
+        // Send OTP via WhatsApp Business API (TEMPORARILY DISABLED)
+        /*
         const phone = orderInquiry.mobile;
         if (phone) {
           console.log(`[Backend] Sending OTP via WhatsApp to: ${phone}`);
@@ -229,6 +238,7 @@ export const updateOrderInquiryStatus = async (req, res) => {
         } else {
           console.warn('[Backend] No phone number found for orderInquiry:', orderInquiry._id, 'Skipping OTP send');
         }
+        */
       } else {
         console.log(`[Backend] OrderInquiry ${orderInquiry._id} already has OTP: ${orderInquiry.deliveryOtp}`);
       }

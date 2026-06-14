@@ -9,6 +9,7 @@ function getTransporter() {
   if (!transporter && EMAIL_USER && EMAIL_APP_PASSWORD) {
     transporter = nodemailer.createTransport({
       service: 'gmail',
+      family: 4,
       auth: {
         user: EMAIL_USER,
         pass: EMAIL_APP_PASSWORD
