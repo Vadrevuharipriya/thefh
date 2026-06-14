@@ -13,8 +13,8 @@ router.post('/order-inquiry', ctrl.postOrderInquiry);
 router.get('/order-inquiry/:id/quotation', ctrl.getQuotationPDF);
 
 // Admin routes - DELETE order inquiry
-// Note: Client calls /api/order-inquiry/:id (mapped via /api mount in index.js)
-router.delete('/:id', requireAdmin, async (req, res) => {
+// Client calls /api/order-inquiry/:id
+router.delete('/order-inquiry/:id', requireAdmin, async (req, res) => {
   try {
     await OrderInquiry.findByIdAndDelete(req.params.id);
     res.json({ success: true });
@@ -24,10 +24,10 @@ router.delete('/:id', requireAdmin, async (req, res) => {
 });
 
 // Admin route - UPDATE STATUS (with OTP generation for food orders)
-router.put('/:id/status', requireAdmin, ctrl.updateOrderInquiryStatus);
+router.put('/order-inquiry/:id/status', requireAdmin, ctrl.updateOrderInquiryStatus);
 
 // Verify delivery OTP for food orders (public - delivery personnel can verify)
-router.post('/:id/verify-delivery', ctrl.verifyOrderInquiryDeliveryOtp);
+router.post('/order-inquiry/:id/verify-delivery', ctrl.verifyOrderInquiryDeliveryOtp);
 
 router.post(
   '/admin/upload',

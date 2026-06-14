@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { CheckCircle, MessageCircle, ArrowLeft, Plus, Minus, Trash2, ShoppingBag, Download } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { COMMON_CART_ORDER_CATEGORY, writeCartItems, writeCartPlate } from '../../utils/cartStorage';
+import { COMMON_CART_ORDER_CATEGORY, writeCartItems, writeCartPlate, clearAllCarts } from '../../utils/cartStorage';
 import './OrderInquiryForm.scss';
 
 const LOCATIONS = ['Delhi NCR', 'Noida', 'Gurugram', 'Faridabad', 'Ghaziabad', 'Lucknow', 'Jaipur', 'Chandigarh', 'Dehradun', 'Other'];
@@ -244,8 +244,7 @@ export default function OrderInquiryForm({ plateData, orderCategory, plateSummar
       setPdfUrl(`/api/order-inquiry/${data.inquiry._id}/quotation`);
       setPlate({});
       setAllItemsMap({});
-      writeCartPlate(COMMON_CART_ORDER_CATEGORY, {});
-      writeCartItems(COMMON_CART_ORDER_CATEGORY, {});
+      clearAllCarts();
       setSubmitted(true);
     } catch (err) {
       console.error('Submission error:', err);

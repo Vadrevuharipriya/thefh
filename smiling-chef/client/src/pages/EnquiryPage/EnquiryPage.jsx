@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ChevronRight, CheckCircle, Phone, MessageCircle } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
+import { clearAllCarts } from '../../utils/cartStorage';
 import OrderInquiryForm from '../../components/OrderInquiryForm/OrderInquiryForm';
 import './EnquiryPage.scss';
 
@@ -236,6 +237,7 @@ function EnquiryForm({ preSelectedOccasion, orderCategory: propOrderCategory, in
         console.error('[EnquiryForm] Backend response error:', responseData);
         throw new Error(responseData?.details || responseData?.error || 'Failed to submit');
       }
+      clearAllCarts();
       setSubmitted(true);
     } catch (err) {
       console.error('[EnquiryForm] Submission error:', err);

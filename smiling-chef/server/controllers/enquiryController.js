@@ -2,7 +2,7 @@ import Enquiry from '../models/Enquiry.js';
 import Order from '../models/Order.js';
 import jwt from 'jsonwebtoken';
 import { generateSecureOTP, validateOTP } from '../utils/otpUtils.js';
-import { sendOrderSummaryOtp, sendOrderNotification, normalizeWhatsAppPhone } from '../services/whatsappService.js';
+// import { sendOrderSummaryOtp, sendOrderNotification, normalizeWhatsAppPhone } from '../services/whatsappService.js';
 
 // ─── PUBLIC ──────────────────────────────────────────────────
 export const submitEnquiry = async (req, res) => {

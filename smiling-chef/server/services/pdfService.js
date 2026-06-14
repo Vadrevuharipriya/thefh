@@ -411,7 +411,8 @@ export async function generateQuotationPDF(data) {
     }
   );
 
-  return doc.output('arraybuffer');
+  const arrayBuffer = doc.output('arraybuffer');
+  return Buffer.from(arrayBuffer);
 }
 
 export default generateQuotationPDF;

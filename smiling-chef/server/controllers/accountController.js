@@ -3,7 +3,7 @@ import Order from '../models/Order.js';
 import OrderInquiry from '../models/OrderInquiry.js';
 import Loyalty from '../models/Loyalty.js';
 import Referral from '../models/Referral.js';
-import { sendOrderNotification } from '../services/whatsappService.js';
+// import { sendOrderNotification } from '../services/whatsappService.js';
 
 // ─── USER ACCOUNT (requiresUserAuth: req.userId set) ──────────
 export const getProfile = async (req, res) => {
@@ -181,6 +181,8 @@ export const createOrder = async (req, res) => {
 
     if (deliveryAddress?.phone) {
       console.log('[Backend] Order created:', order._id, 'Phone in deliveryAddress:', deliveryAddress.phone);
+      // TEMPORARILY DISABLED: WhatsApp notification
+      /*
       console.log('[Backend] Attempting to send WhatsApp hello_world template to:', deliveryAddress.phone);
       
       sendOrderNotification(deliveryAddress.phone, order)
@@ -192,6 +194,7 @@ export const createOrder = async (req, res) => {
           console.error('[WhatsApp Order] Error message:', err.message);
           console.error('[WhatsApp Order] Full error:', JSON.stringify(err, null, 2));
         });
+      */
     } else {
       console.warn('[Backend] No phone in deliveryAddress. Full address:', JSON.stringify(deliveryAddress));
     }

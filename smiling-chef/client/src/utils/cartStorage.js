@@ -55,3 +55,12 @@ export const readCommonCartItems = () => {
 
   return mergeCartValues(LEGACY_CART_ORDER_CATEGORIES.map(readCartItems));
 };
+
+export const clearAllCarts = () => {
+  writeCartPlate(COMMON_CART_ORDER_CATEGORY, {});
+  writeCartItems(COMMON_CART_ORDER_CATEGORY, {});
+  LEGACY_CART_ORDER_CATEGORIES.forEach((category) => {
+    writeCartPlate(category, {});
+    writeCartItems(category, {});
+  });
+};
