@@ -282,6 +282,7 @@ export async function generateQuotationPDF(data) {
 
   doc.autoTable({
     startY: tableStartY,
+    tableWidth: 'auto',
 
     head: [
       [
