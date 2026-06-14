@@ -8,16 +8,28 @@ let transporter = null;
 function getTransporter() {
   if (!transporter && EMAIL_USER && EMAIL_APP_PASSWORD) {
     transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: EMAIL_USER,
-    pass: EMAIL_APP_PASSWORD
-  },
-  connectionTimeout: 10000,
-  greetingTimeout: 10000,
-  socketTimeout: 10000
-});
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false,
+      auth: {
+        user: EMAIL_USER,
+        pass: EMAIL_APP_PASSWORD
+      },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 10000,
+      family: 4
+    });
+
+    transporter.verify((err) => {
+      if (err) {
+        console.error('[Email] SMTP Verify Error:', err);
+      } else {
+        console.log('[Email] SMTP Ready');
+      }
+    });
   }
+
   return transporter;
 }
 
