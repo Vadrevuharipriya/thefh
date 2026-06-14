@@ -109,18 +109,19 @@ export const postOrderInquiry = async (req, res) => {
         pdfBase64 = pdfBuffer.toString('base64');
 
         if (email) {
-          try {
-            await sendQuotationEmail({
-              to: email,
-              customerName: name,
-              quotationNumber,
-              pdfBuffer
-            });
-            console.log('[Email] Quotation sent to:', email);
-          } catch (emailErr) {
-            console.error('[Email] Failed to send quotation (non-fatal):', emailErr.message);
-          }
-        }
+  sendQuotationEmail({
+    to: email,
+    customerName: name,
+    quotationNumber,
+    pdfBuffer
+  })
+    .then(() => {
+      console.log('[Email] Quotation sent to:', email);
+    })
+    .catch((err) => {
+      console.error('[Email] Failed to send quotation (non-fatal):', err.message);
+    });
+}
       } catch (pdfErr) {
         console.error('[PDF/Email] Failed to generate PDF or send email:', pdfErr.message);
         console.error('[PDF/Email] Full error:', pdfErr);
