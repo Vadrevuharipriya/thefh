@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import OrderInquiry from '../models/OrderInquiry.js';
 import Order from '../models/Order.js';
-// import { sendOrderInquiryNotification } from '../services/whatsappService.js';
+import { sendOrderInquiryNotification } from '../services/whatsappService.js';
 import { generateSecureOTP, validateOTP } from '../utils/otpUtils.js';
 import generateQuotationPDF from '../services/pdfService.js';
 import sendQuotationEmail from '../services/emailService.js';
@@ -123,17 +123,17 @@ export const postOrderInquiry = async (req, res) => {
       }
     }
 
-    // if (phone) {
-    //   console.log('[Backend] Sending WhatsApp inquiry notification to:', phone);
-    //   // sendOrderInquiryNotification(phone, created)
-    //   //   .then(() => console.log('[WhatsApp] Order inquiry notification sent to', phone))
-    //   //   .catch(err => {
-    //   //     console.error('[WhatsApp] Order inquiry notification failed - Message:', err.message);
-    //   //     console.error('[WhatsApp] Order inquiry notification failed - Full Error:', err);
-    //   //   });
-    // } else {
-    //   console.warn('[Backend] No mobile provided in order-inquiry, skipping WhatsApp');
-    // }
+    if (phone) {
+      console.log('[Backend] Sending WhatsApp inquiry notification to:', phone);
+      // sendOrderInquiryNotification(phone, created)
+      //   .then(() => console.log('[WhatsApp] Order inquiry notification sent to', phone))
+      //   .catch(err => {
+      //     console.error('[WhatsApp] Order inquiry notification failed - Message:', err.message);
+      //     console.error('[WhatsApp] Order inquiry notification failed - Full Error:', err);
+      //   });
+    } else {
+      console.warn('[Backend] No mobile provided in order-inquiry, skipping WhatsApp');
+    }
 
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith('Bearer ')) {
@@ -165,7 +165,13 @@ export const postOrderInquiry = async (req, res) => {
       }
     }
 
-    res.json({ success: true, inquiry: created, pdfBase64 });
+    console.log('[API] Returning success response');
+
+    return res.json({
+      success: true,
+      inquiry: created,
+      pdfBase64
+    });
   } catch (err) {
     console.error('[Backend] POST /api/order-inquiry - Error:', err.message);
     console.error('[Backend] POST /api/order-inquiry - Full Error:', err);
@@ -209,8 +215,7 @@ export const updateOrderInquiryStatus = async (req, res) => {
 
         console.log(`[Backend] Generated OTP: ${otp} for orderInquiry ${orderInquiry._id}`);
 
-        // Send OTP via WhatsApp Business API (TEMPORARILY DISABLED)
-        /*
+        // Send OTP via WhatsApp Business API
         const phone = orderInquiry.mobile;
         if (phone) {
           console.log(`[Backend] Sending OTP via WhatsApp to: ${phone}`);
@@ -224,7 +229,6 @@ export const updateOrderInquiryStatus = async (req, res) => {
         } else {
           console.warn('[Backend] No phone number found for orderInquiry:', orderInquiry._id, 'Skipping OTP send');
         }
-        */
       } else {
         console.log(`[Backend] OrderInquiry ${orderInquiry._id} already has OTP: ${orderInquiry.deliveryOtp}`);
       }
