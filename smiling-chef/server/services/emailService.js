@@ -1,4 +1,7 @@
 import nodemailer from 'nodemailer';
+import dns from 'dns';
+
+dns.setDefaultResultOrder('ipv4first');
 
 const EMAIL_USER = process.env.EMAIL_USER;
 const EMAIL_APP_PASSWORD = process.env.EMAIL_APP_PASSWORD;
@@ -8,18 +11,14 @@ let transporter = null;
 function getTransporter() {
   if (!transporter && EMAIL_USER && EMAIL_APP_PASSWORD) {
     transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false,
-      auth: {
-        user: EMAIL_USER,
-        pass: EMAIL_APP_PASSWORD
-      },
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 10000,
-      family: 4
-    });
+  host: 'smtp.gmail.com',
+  port: 587,
+  secure: false,
+  auth: {
+    user: EMAIL_USER,
+    pass: EMAIL_APP_PASSWORD
+  }
+});
 
     transporter.verify((err) => {
       if (err) {
