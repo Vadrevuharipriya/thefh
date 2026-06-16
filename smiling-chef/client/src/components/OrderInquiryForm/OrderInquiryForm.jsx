@@ -192,8 +192,15 @@ export default function OrderInquiryForm({ plateData, orderCategory, plateSummar
     setLoading(true);
     setError('');
 
-    if (!user && !form.email?.trim()) {
-      setError('Email is required');
+    const missingFields = [];
+    if (!form.location) missingFields.push('Location');
+    if (!form.occasion) missingFields.push('Occasion');
+    if (!form.eventDate) missingFields.push('Event Date');
+
+    if (!user && !form.email?.trim()) missingFields.push('Email');
+
+    if (missingFields.length > 0) {
+      setError('Please fill all required fields');
       setLoading(false);
       return;
     }
@@ -295,67 +302,63 @@ if (submitted) {
               <div className="order-inquiry-form__section">
                 <div className="order-inquiry-form__section-title">Event Detail</div>
 
-                <div className="order-inquiry-form__row">
-                  <div className="order-inquiry-form__group">
-                    <label className="order-inquiry-form__label">Select location</label>
-                    <select
-                      className="order-inquiry-form__select"
-                      value={form.location}
-                      onChange={(e) => set('location', e.target.value)}
-                      required
-                    >
-                      <option value="">Choose location...</option>
-                      {LOCATIONS.map(loc => (
-                        <option key={loc} value={loc}>{loc}</option>
-                      ))}
-                    </select>
+<div className="order-inquiry-form__row">
+                   <div className="order-inquiry-form__group">
+                     <label className="order-inquiry-form__label">Select location <span className="req">*</span></label>
+                     <select
+                       className="order-inquiry-form__select"
+                       value={form.location}
+                       onChange={(e) => set('location', e.target.value)}
+                     >
+                       <option value="">Choose location...</option>
+                       {LOCATIONS.map(loc => (
+                         <option key={loc} value={loc}>{loc}</option>
+                       ))}
+                     </select>
+                   </div>
+
+                   <div className="order-inquiry-form__group">
+                     <label className="order-inquiry-form__label">Select occasion <span className="req">*</span></label>
+                     <select
+                       className="order-inquiry-form__select"
+                       value={form.occasion}
+                       onChange={(e) => set('occasion', e.target.value)}
+                       disabled={loadingOccasions}
+                     >
+                       <option value="">Choose occasion...</option>
+                       {occasions.map(occ => (
+                         <option key={occ._id} value={occ.name}>{occ.name}</option>
+                       ))}
+                     </select>
+                   </div>
+                 </div>
+
+                 <div className="order-inquiry-form__row">
+                   <div className="order-inquiry-form__group">
+                     <label className="order-inquiry-form__label">No of people <span className="req">*</span></label>
+                     <select
+                       className="order-inquiry-form__select"
+                       value={form.numberOfPeople}
+                       onChange={(e) => set('numberOfPeople', e.target.value)}
+                     >
+                       <option value="">Select number...</option>
+                       {PEOPLE_OPTIONS.map(opt => (
+                         <option key={opt} value={opt}>{opt}</option>
+                       ))}
+                     </select>
                   </div>
 
-                  <div className="order-inquiry-form__group">
-                    <label className="order-inquiry-form__label">Select occasion</label>
-                    <select
-                      className="order-inquiry-form__select"
-                      value={form.occasion}
-                      onChange={(e) => set('occasion', e.target.value)}
-                      required
-                      disabled={loadingOccasions}
-                    >
-                      <option value="">Choose occasion...</option>
-                      {occasions.map(occ => (
-                        <option key={occ._id} value={occ.name}>{occ.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="order-inquiry-form__row">
-                  <div className="order-inquiry-form__group">
-                    <label className="order-inquiry-form__label">No of people</label>
-                    <select
-                      className="order-inquiry-form__select"
-                      value={form.numberOfPeople}
-                      onChange={(e) => set('numberOfPeople', e.target.value)}
-                      required
-                    >
-                      <option value="">Select number...</option>
-                      {PEOPLE_OPTIONS.map(opt => (
-                        <option key={opt} value={opt}>{opt}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="order-inquiry-form__group">
-                    <label className="order-inquiry-form__label">Select date</label>
-                    <input
-                      type="date"
-                      className="order-inquiry-form__input order-inquiry-form__input--date"
-                      min={today}
-                      max={maxDate}
-                      value={form.eventDate}
-                      onChange={(e) => set('eventDate', e.target.value)}
-                      required
-                    />
-                  </div>
+<div className="order-inquiry-form__group">
+                     <label className="order-inquiry-form__label">Select date <span className="req">*</span></label>
+                     <input
+                       type="date"
+                       className="order-inquiry-form__input order-inquiry-form__input--date"
+                       min={today}
+                       max={maxDate}
+                       value={form.eventDate}
+                       onChange={(e) => set('eventDate', e.target.value)}
+                     />
+                   </div>
                 </div>
 
                 <div className="order-inquiry-form__row">
@@ -411,7 +414,7 @@ if (submitted) {
                 <div className="order-inquiry-form__row">
                   {!(user && user.email) && (
                     <div className="order-inquiry-form__group">
-                      <label className="order-inquiry-form__label">Email address</label>
+                      <label className="order-inquiry-form__label">Email address<span className="req">*</span></label>
                       <input
                         type="email"
                         className="order-inquiry-form__input"
@@ -500,11 +503,14 @@ if (submitted) {
                 <span className="val">₹{summary.totalPayable}</span>
               </div>
 
-              <button type="submit" form="order-form" className="vmc-summary-card__btn" disabled={loading}>
-                {loading ? 'Submitting...' : 'Continue'}
-              </button>
-            </div>
-          </aside>
+<button type="submit" form="order-form" className="vmc-summary-card__btn" disabled={loading}>
+                 {loading ? 'Submitting...' : 'Continue'}
+               </button>
+               {error && (
+                 <p className="order-inquiry-form__error" style={{ color: '#ef4444', marginTop: '0.75rem' }}>{error}</p>
+               )}
+             </div>
+           </aside>
         </div>
       </div>
     </div>

@@ -1,5 +1,12 @@
 import { Link, useParams } from 'react-router-dom';
-import { ChevronRight, Calendar, User } from 'lucide-react';
+import {
+  ChevronRight,
+  Calendar,
+  User,
+  Facebook,
+  Twitter,
+  Linkedin
+} from 'lucide-react';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import './BlogDetailPage.scss';
@@ -325,7 +332,11 @@ export default function BlogDetailPage() {
   }
 
   if (!post) {
-    return <NotFound slug={slug} />;
+    return (
+      <div className="blog-detail">
+        <NotFound slug={slug} />
+      </div>
+    );
   }
 
   return (

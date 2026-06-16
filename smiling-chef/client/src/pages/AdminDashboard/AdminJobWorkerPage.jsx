@@ -93,6 +93,16 @@ export default function AdminJobWorkerPage() {
     if (!local.city && f.city) {
       local.city = f.city;
     }
+
+    if (f.aadhaarFrontUrl && !local.aadhaarFrontUrl) {
+      local.aadhaarFrontUrl = f.aadhaarFrontUrl;
+    }
+    if (f.aadhaarBackUrl && !local.aadhaarBackUrl) {
+      local.aadhaarBackUrl = f.aadhaarBackUrl;
+    }
+    if (f.panDocumentUrl && !local.panDocumentUrl) {
+      local.panDocumentUrl = f.panDocumentUrl;
+    }
   }
 });
         const localByEmail = new Map(localData.filter((c) => c.email).map((c) => [c.email?.toLowerCase(), c]));
@@ -110,7 +120,7 @@ export default function AdminJobWorkerPage() {
           const mobile = c.mobile?.trim() || '';
           const city = c.city?.trim() || '';
 
-          if (!name && !email && !mobile) {
+if (!name && !email && !mobile) {
             return null;
           }
 
@@ -127,6 +137,9 @@ export default function AdminJobWorkerPage() {
             earnings: c.earnings || null,
             displayStatus: c.displayStatus || 'Approved',
             image: c.image || '',
+            aadhaarFrontUrl: c.aadhaarFrontUrl || c.aadharFrontUrl || '',
+            aadhaarBackUrl: c.aadhaarBackUrl || c.aadharBackUrl || '',
+            panDocumentUrl: c.panDocumentUrl || c.panUrl || '',
             raw: c.raw || {},
           };
         }).filter(Boolean);

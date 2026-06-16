@@ -1,4 +1,5 @@
 import Chef from '../models/Chef.js';
+import { syncChefToFirebase } from './adminFirebaseController.js';
 
 // ─── PUBLIC ──────────────────────────────────────────────────
 export const getPublicChefs = async (req, res) => {
@@ -38,10 +39,17 @@ export const getChefById = async (req, res) => {
 
 export const updateChef = async (req, res) => {
   try {
-    const updated = await Chef.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const updated = await Chef.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
     if (!updated) return res.status(404).json({ error: 'Chef not found' });
+    try {
+      await syncChefToFirebase(updated, req.body);
+    } catch (syncErr) {
+      console.error('Failed to sync updated chef to Firebase:', syncErr.message || syncErr);
+      return res.status(500).json({ error: 'Failed to synchronize chef with Firebase' });
+    }
     res.json(updated);
-  } catch {
+  } catch (err) {
+    console.error('Failed to update chef:', err.message || err);
     res.status(500).json({ error: 'Failed to update chef' });
   }
 };
@@ -58,8 +66,10 @@ export const deleteChef = async (req, res) => {
 export const createChef = async (req, res) => {
   try {
     const created = await Chef.create(req.body);
+    await syncChefToFirebase(created);
     res.json(created);
-  } catch {
+  } catch (err) {
+    console.error('Failed to create chef:', err.message || err);
     res.status(500).json({ error: 'Failed to create chef' });
   }
 };
