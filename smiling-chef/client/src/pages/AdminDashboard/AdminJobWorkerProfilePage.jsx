@@ -43,6 +43,7 @@ function normalizeWorker(worker, source) {
       : (worker.cuisines ? worker.cuisines : []);
 
   const profile = worker.profile || {};
+  const kyc = worker.kycDocuments || {};
 
   return {
     _id: worker._id || worker.firebaseId || worker.id,
@@ -53,24 +54,25 @@ function normalizeWorker(worker, source) {
     city: worker.city || profile.city || profile.location || '',
     experience: worker.experience != null ? String(worker.experience) : (profile.experience != null ? String(profile.experience) : ''),
     email: worker.email || profile.email || '',
-    mobile: worker.mobile || profile.mobile || profile.phone || profile.contact || '',
-    emergencyContact: worker.emergencyContact || profile.emergencyContact || '',
+    mobile: worker.mobile || worker.phone || profile.mobile || profile.phone || profile.contact || '',
+    emergencyContact: worker.emergencyContact || worker.emergencyPhone || profile.emergencyContact || '',
     gender: worker.gender || profile.gender || '',
     jobPreference: worker.jobPreference || profile.jobPreference || '',
     cuisines,
-    pincode: worker.pincode || profile.pincode || '',
-    communicationAddress: worker.communicationAddress || profile.communicationAddress || profile.address || '',
-    permanentAddress: worker.permanentAddress || profile.permanentAddress || '',
+    pincode: worker.pincode || worker.pinCode || profile.pincode || '',
+    address: worker.address || profile.address || kyc.address || '',
+    communicationAddress: worker.communicationAddress || worker.address || profile.communicationAddress || profile.address || kyc.communicationAddress || '',
+    permanentAddress: worker.permanentAddress || profile.permanentAddress || kyc.permanentAddress || '',
     zone: worker.zone || profile.zone || '',
-    aadhaarNumber: worker.aadhaarNumber || profile.aadhaarNumber || '',
-    panNumber: worker.panNumber || profile.panNumber || '',
+    aadhaarNumber: worker.aadhaarNumber || worker.aadharNumber || profile.aadhaarNumber || kyc.aadharNumber || '',
+    panNumber: worker.panNumber || profile.panNumber || kyc.panNumber || '',
     bankAccountNumber: worker.bankAccountNumber || profile.bankAccountNumber || '',
     ifscCode: worker.ifscCode || profile.ifscCode || '',
     bankName: worker.bankName || profile.bankName || '',
     upiNumber: worker.upiNumber || profile.upiNumber || '',
-    aadhaarFrontUrl: worker.aadhaarFrontUrl || profile.aadhaarFrontUrl || '',
-    aadhaarBackUrl: worker.aadhaarBackUrl || profile.aadhaarBackUrl || '',
-    panDocumentUrl: worker.panDocumentUrl || profile.panDocumentUrl || '',
+    aadhaarFrontUrl: worker.aadhaarFrontUrl || worker.aadharFrontUrl || profile.aadhaarFrontUrl || kyc.aadharFrontUrl || '',
+    aadhaarBackUrl: worker.aadhaarBackUrl || worker.aadharBackUrl || profile.aadhaarBackUrl || kyc.aadharBackUrl || '',
+    panDocumentUrl: worker.panDocumentUrl || worker.panUrl || profile.panDocumentUrl || kyc.panUrl || '',
     displayStatus: worker.displayStatus || profile.displayStatus || 'Pending',
     image: worker.image || profile.image || '',
   };

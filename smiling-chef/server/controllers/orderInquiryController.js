@@ -6,6 +6,85 @@ import { generateSecureOTP, validateOTP } from '../utils/otpUtils.js';
 import generateQuotationPDF from '../services/pdfService.js';
 import sendQuotationEmail from '../services/emailService.js';
 
+const QUOTATION_CATEGORIES = ['customized-plate', 'bhaji-orders', 'chutney-pickle'];
+
+function buildQuotationData(orderInquiry) {
+  const {
+    name,
+    mobile,
+    email,
+    deliveryAddress,
+    numberOfPeople,
+    eventDate,
+    occasion,
+    plateItems,
+    bhajiType,
+    productType,
+    plateType,
+    spicePreference,
+    specialInstructions,
+    quantity,
+    category,
+  } = orderInquiry;
+
+  const quotationNumber = orderInquiry._id
+    ? orderInquiry._id.toString().slice(-6).toUpperCase()
+    : `Q${Date.now().toString().slice(-6)}`;
+  const issueDate = new Date().toLocaleDateString('en-IN');
+
+  const rawItems = Array.isArray(plateItems) && plateItems.length > 0
+    ? plateItems
+    : [{
+        name: bhajiType || productType || plateType || specialInstructions || 'Order Request',
+        cuisineName: '',
+        veg: true,
+        price: 0,
+        quantity: quantity ? Number(quantity) : 1,
+      }];
+
+  const multiplier = numberOfPeople ? Number(numberOfPeople) : 1;
+  const items = rawItems.map((item) => ({
+    ...item,
+    quantity: multiplier > 1 ? (Number(item.quantity) || 1) * multiplier : (Number(item.quantity) || 1),
+  }));
+
+  const subtotal = items.reduce(
+    (sum, item) => sum + (Number(item.price) || 0) * (Number(item.quantity) || 1),
+    0
+  );
+  const discount = subtotal > 1000 ? 200 : 0;
+  const platformFee = subtotal > 0 ? 8 : 0;
+  const gst = Math.round((subtotal - discount) * 0.18);
+  const totalPayable = subtotal - discount + platformFee + gst;
+
+  return {
+    customerInfo: {
+      name,
+      phone: mobile,
+      email,
+      location: deliveryAddress || '',
+      numberOfPeople: numberOfPeople || '',
+      eventDate: eventDate || '',
+      occasion: occasion || '',
+    },
+    items,
+    subtotal,
+    gst,
+    platformFee,
+    discount,
+    totalPayable,
+    issueDate,
+    quotationNumber,
+    category,
+  };
+}
+
+function shouldGenerateQuotation(category, orderInquiry) {
+  if (!QUOTATION_CATEGORIES.includes(category)) return false;
+  if (Array.isArray(orderInquiry.plateItems) && orderInquiry.plateItems.length > 0) return true;
+  return Boolean(orderInquiry.bhajiType || orderInquiry.productType || orderInquiry.plateType || orderInquiry.specialInstructions);
+}
+
 // ─── LEGACY ORDER INQUIRY ─────────────────────────────────────
 export const postOrderInquiry = async (req, res) => {
   try {
@@ -64,69 +143,40 @@ export const postOrderInquiry = async (req, res) => {
 
     console.log('[Backend] POST /api/order-inquiry - Saved as OrderInquiry with category:', category, 'email:', email);
 
-    // Send email with PDF quotation for customized-plate orders
-    const isCustomizedPlate = (category || orderCategory) === 'customized-plate';
-    console.log('[Email] Checking conditions - category:', category, 'orderCategory:', orderCategory, 'isCustomizedPlate:', isCustomizedPlate, 'hasEmail:', !!email, 'plateItems:', plateItems?.length);
+    const shouldQuote = shouldGenerateQuotation(category || orderCategory, created);
+    console.log(
+      '[Email] Checking quotation conditions - category:', category,
+      'orderCategory:', orderCategory,
+      'shouldQuote:', shouldQuote,
+      'hasEmail:', !!email,
+      'plateItems:', plateItems?.length
+    );
 
     let pdfBase64 = null;
-    if (isCustomizedPlate && plateItems && plateItems.length > 0) {
-      const quotationNumber = created._id.toString().slice(-6).toUpperCase();
-      const issueDate = new Date().toLocaleDateString('en-IN');
-
-      const items = plateItems || [];
-      const subtotal = items.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 1), 0);
-      const multiplier = numberOfPeople ? Number(numberOfPeople) : 1;
-      const adjustedSubtotal = subtotal * multiplier;
-      const discount = adjustedSubtotal > 1000 ? 200 : 0;
-      const platformFee = 8;
-      const gst = Math.round((adjustedSubtotal - discount) * 0.18);
-      const totalPayable = adjustedSubtotal - discount + platformFee + gst;
-
+    if (shouldQuote) {
       try {
-        const pdfBuffer = await generateQuotationPDF({
-          customerInfo: {
-            name,
-            phone: phone || mobile,
-            email,
-            location: deliveryAddress || '',
-            numberOfPeople: numberOfPeople || '',
-            eventDate: eventDate || deliveryDate || '',
-            occasion: occasion || ''
-          },
-          items: items.map(item => ({
-            ...item,
-            quantity: multiplier > 1 ? item.quantity * multiplier : item.quantity
-          })),
-          subtotal: adjustedSubtotal,
-          gst,
-          platformFee,
-          discount,
-          totalPayable,
-          issueDate,
-          quotationNumber
-        });
-
+        const quotationPayload = buildQuotationData(created);
+        const pdfBuffer = await generateQuotationPDF(quotationPayload);
         pdfBase64 = pdfBuffer.toString('base64');
 
         if (email) {
-  sendQuotationEmail({
-    to: email,
-    customerName: name,
-    quotationNumber,
-    pdfBuffer
-  })
-    .then(() => {
-      console.log('[Email] Quotation sent to:', email);
-    })
-    .catch((err) => {
-      console.error('[Email] Failed to send quotation (non-fatal):', err.message);
-    });
-}
+          sendQuotationEmail({
+            to: email,
+            customerName: name,
+            quotationNumber: quotationPayload.quotationNumber,
+            pdfBuffer
+          })
+            .then(() => {
+              console.log('[Email] Quotation sent to:', email);
+            })
+            .catch((err) => {
+              console.error('[Email] Failed to send quotation (non-fatal):', err.message);
+            });
+        }
       } catch (pdfErr) {
         console.error('[PDF/Email] Failed to generate PDF or send email:', pdfErr.message);
         console.error('[PDF/Email] Full error:', pdfErr);
       }
-
     }
 
     // TEMPORARILY DISABLED: WhatsApp notification
@@ -329,49 +379,15 @@ export const getQuotationPDF = async (req, res) => {
       return res.status(404).json({ error: 'Order inquiry not found' });
     }
 
-    // Only generate PDF for customized-plate orders with items
-    if (orderInquiry.category !== 'customized-plate' || !orderInquiry.plateItems || orderInquiry.plateItems.length === 0) {
+      if (!shouldGenerateQuotation(orderInquiry.category, orderInquiry)) {
       return res.status(400).json({ error: 'No quotation available for this order' });
     }
 
-    const { name, mobile, email, deliveryAddress, numberOfPeople, eventDate, occasion, plateItems } = orderInquiry;
-    const quotationNumber = id.toString().slice(-6).toUpperCase();
-    const issueDate = new Date().toLocaleDateString('en-IN');
-
-    const items = plateItems || [];
-    const subtotal = items.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 1), 0);
-    const multiplier = numberOfPeople ? Number(numberOfPeople) : 1;
-    const adjustedSubtotal = subtotal * multiplier;
-    const discount = adjustedSubtotal > 1000 ? 200 : 0;
-    const platformFee = 8;
-    const gst = Math.round((adjustedSubtotal - discount) * 0.18);
-    const totalPayable = adjustedSubtotal - discount + platformFee + gst;
-
-    // Generate PDF
-    const pdfBuffer = await generateQuotationPDF({
-      customerInfo: {
-        name,
-        phone: mobile,
-        email,
-        location: deliveryAddress || '',
-        numberOfPeople: numberOfPeople || '',
-        eventDate: eventDate || '',
-        occasion: occasion || ''
-      },
-      items: items.map(item => ({
-        ...item,
-        quantity: multiplier > 1 ? item.quantity * multiplier : item.quantity
-      })),
-      subtotal: adjustedSubtotal,
-      gst,
-      platformFee,
-      discount,
-      totalPayable,
-      issueDate,
-      quotationNumber
-    });
+    const quotationPayload = buildQuotationData(orderInquiry);
+    const pdfBuffer = await generateQuotationPDF(quotationPayload);
 
     // Send PDF as binary file
+    const quotationNumber = quotationPayload.quotationNumber;
     const buffer = Buffer.from(new Uint8Array(pdfBuffer));
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="Quotation_${quotationNumber}.pdf"`);

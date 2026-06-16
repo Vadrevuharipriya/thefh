@@ -9,7 +9,7 @@ import {
   X,
   ChevronDown
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import './AdminSidebar.scss';
 
 const navItems = [
@@ -60,6 +60,7 @@ function AdminSidebar() {
   const [openDropdowns, setOpenDropdowns] = useState({});
   const navigate = useNavigate();
   const location = useLocation();
+  const navRef = useRef(null);
 
   useEffect(() => {
     const newOpenState = {};
@@ -73,6 +74,42 @@ function AdminSidebar() {
     setOpenDropdowns(newOpenState);
   }, [location.pathname]);
 
+  // Restore scroll position on mount
+  useEffect(() => {
+  const savedScroll = localStorage.getItem('adminSidebarScroll');
+
+  if (savedScroll && navRef.current) {
+    requestAnimationFrame(() => {
+      navRef.current.scrollTop = parseInt(savedScroll, 10);
+    });
+  }
+}, [openDropdowns]);
+
+  // Scroll to active submenu item after dropdowns open
+  useEffect(() => {
+    const savedScroll = localStorage.getItem('adminSidebarScroll');
+    // Only scroll to active if no saved scroll position
+    if (!savedScroll && navRef.current) {
+      const activeElement = navRef.current.querySelector('.admin-sidebar__sublink.active');
+      if (activeElement) {
+        activeElement.scrollIntoView({ block: 'center', behavior: 'instant' });
+      }
+    }
+  }, [openDropdowns]);
+
+  // Save scroll position on scroll
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+    
+    const handleScroll = () => {
+      localStorage.setItem('adminSidebarScroll', nav.scrollTop.toString());
+    };
+    
+    nav.addEventListener('scroll', handleScroll);
+    return () => nav.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const toggleDropdown = (label) => {
     setOpenDropdowns(prev => ({
       ...prev,
@@ -82,6 +119,7 @@ function AdminSidebar() {
 
   const handleLogout = () => {
     localStorage.removeItem('adminToken');
+    localStorage.removeItem('adminSidebarScroll');
     navigate('/admin/login');
   };
 
@@ -106,7 +144,7 @@ function AdminSidebar() {
           </button>
         </div>
 
-        <nav className="admin-sidebar__nav">
+        <nav className="admin-sidebar__nav" ref={navRef}>
           {navItems.map((item, index) => {
             const key = item.to || item.label || index;
             if (item.submenu) {

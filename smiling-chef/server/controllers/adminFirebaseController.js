@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { initializeApp, cert, getApps } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
+import Chef from '../models/Chef.js';
 
 function normalizeFirebasePrivateKey(key) {
   if (!key) return key;
@@ -54,6 +55,7 @@ export async function getFirebaseChefs(req, res) {
   
   try {
     initFirebaseAdmin();
+    await syncAllFirebaseChefsToMongo();
     const db = getFirestore();
 
     const snapshot = await db.collection('users').get();
@@ -61,6 +63,7 @@ export async function getFirebaseChefs(req, res) {
     const chefs = await Promise.all(
       snapshot.docs.map(async (doc) => {
         const d = doc.data();
+        const kyc = d.kycDocuments || {};
 
         let bookingCount = 0;
 
@@ -74,7 +77,6 @@ export async function getFirebaseChefs(req, res) {
           );
         }
         
-
         return {
           firebaseId: doc.id,
           name: d.name || d.displayName || '',
@@ -89,9 +91,13 @@ export async function getFirebaseChefs(req, res) {
           events: bookingCount,
 
           earnings: d.earnings || null,
-          displayStatus: d.displayStatus || d.status || 'Approved',
+          displayStatus: d.displayStatus || d.status || 'Pending',
           image: d.image || '',
           bio: d.bio || '',
+          aadhaarNumber: d.aadhaarNumber || d.aadharNumber || kyc.aadharNumber || '',
+          aadhaarFrontUrl: d.aadhaarFrontUrl || kyc.aadharFrontUrl || '',
+          aadhaarBackUrl: d.aadhaarBackUrl || kyc.aadharBackUrl || '',
+          panDocumentUrl: d.panDocumentUrl || kyc.panUrl || '',
           raw: d,
         };
       })
@@ -112,6 +118,8 @@ export async function getFirebaseChefs(req, res) {
 
 function normalizeFirebaseChefDoc(id, data) {
   if (!data) return null;
+  const kyc = data.kycDocuments || {};
+  
   return {
     firebaseId: id,
     name: data.name || data.displayName || '',
@@ -120,24 +128,24 @@ function normalizeFirebaseChefDoc(id, data) {
     experience: data.experience != null ? Number(data.experience) : '',
     email: data.email || '',
     mobile: data.phone || data.mobile || data.contact || '',
-    emergencyContact: data.emergencyContact || '',
+    emergencyContact: data.emergencyContact || data.emergencyPhone || '',
     gender: data.gender || '',
     jobPreference: data.jobPreference || '',
     cuisines: Array.isArray(data.cuisines) ? data.cuisines : (data.cuisines ? [data.cuisines] : []),
-    pincode: data.pincode || '',
-    communicationAddress: data.communicationAddress || data.address || '',
-    permanentAddress: data.permanentAddress || '',
+    pincode: data.pincode || data.pinCode || '',
+    communicationAddress: data.communicationAddress || data.address || kyc.communicationAddress || '',
+    permanentAddress: data.permanentAddress || kyc.permanentAddress || '',
     zone: data.zone || '',
-    aadhaarNumber: data.aadhaarNumber || '',
-    panNumber: data.panNumber || '',
+    aadhaarNumber: data.aadhaarNumber || data.aadharNumber || kyc.aadharNumber || '',
+    panNumber: data.panNumber || kyc.panNumber || '',
     bankAccountNumber: data.bankAccountNumber || '',
     ifscCode: data.ifscCode || '',
     bankName: data.bankName || '',
     upiNumber: data.upiNumber || '',
-    aadhaarFrontUrl: data.aadhaarFrontUrl || '',
-    aadhaarBackUrl: data.aadhaarBackUrl || '',
-    panDocumentUrl: data.panDocumentUrl || '',
-    displayStatus: data.displayStatus || data.status || 'Approved',
+    aadhaarFrontUrl: data.aadhaarFrontUrl || kyc.aadharFrontUrl || '',
+    aadhaarBackUrl: data.aadhaarBackUrl || kyc.aadharBackUrl || '',
+    panDocumentUrl: data.panDocumentUrl || kyc.panUrl || '',
+    displayStatus: data.displayStatus || data.status || 'Pending',
     image: data.image || '',
     rating: data.rating ?? 0,
     events: data.events ?? 0,
@@ -149,24 +157,52 @@ function normalizeFirebaseChefDoc(id, data) {
 }
 
 function buildFirebaseUpdatePayload(body) {
-  const flattened = { ...body, ...(body.profile || {}) };
+  const flattened = {
+    ...(body.kycDocuments || {}),
+    ...(body.profile || {}),
+    ...body,
+  };
   delete flattened.profile;
+  delete flattened.kycDocuments;
 
   const allowedKeys = [
     'name', 'role', 'city', 'experience', 'email', 'mobile', 'phone', 'contact',
     'emergencyContact', 'gender', 'jobPreference', 'cuisines', 'serviceTypes',
-    'rating', 'events', 'earnings', 'displayStatus', 'image', 'bio', 'followers',
+    'rating', 'events', 'earnings', 'displayStatus', 'status', 'image', 'bio', 'followers',
     'awards', 'pincode', 'communicationAddress', 'permanentAddress', 'zone',
-    'aadhaarNumber', 'panNumber', 'bankAccountNumber', 'ifscCode', 'bankName',
-    'upiNumber', 'aadhaarFrontUrl', 'aadhaarBackUrl', 'panDocumentUrl',
+    'aadhaarNumber', 'aadharNumber', 'panNumber', 'bankAccountNumber', 'ifscCode', 'bankName',
+    'upiNumber', 'aadhaarFrontUrl', 'aadharFrontUrl', 'aadhaarBackUrl', 'aadharBackUrl', 'panDocumentUrl', 'panUrl',
   ];
 
+  // Map normalized field names to Firebase field names
   const payload = {};
   allowedKeys.forEach((key) => {
     if (flattened[key] !== undefined) {
       payload[key] = flattened[key];
     }
   });
+
+  // Handle field name mapping for Firebase (aadhaar -> aadhar)
+  if (payload.aadhaarNumber && !payload.aadharNumber) {
+    payload.aadharNumber = payload.aadhaarNumber;
+    delete payload.aadhaarNumber;
+  }
+  if (payload.aadhaarFrontUrl && !payload.aadharFrontUrl) {
+    payload.aadharFrontUrl = payload.aadhaarFrontUrl;
+    delete payload.aadhaarFrontUrl;
+  }
+  if (payload.aadhaarBackUrl && !payload.aadharBackUrl) {
+    payload.aadharBackUrl = payload.aadhaarBackUrl;
+    delete payload.aadhaarBackUrl;
+  }
+  if (payload.panDocumentUrl && !payload.panUrl) {
+    payload.panUrl = payload.panDocumentUrl;
+    delete payload.panDocumentUrl;
+  }
+  if (payload.status && !payload.displayStatus) {
+    payload.displayStatus = payload.status;
+    delete payload.status;
+  }
 
   if (payload.cuisines && typeof payload.cuisines === 'string') {
     payload.cuisines = payload.cuisines.split(',').map((item) => item.trim()).filter(Boolean);
@@ -189,7 +225,119 @@ function buildFirebaseUpdatePayload(body) {
     payload.mobile = payload.phone;
   }
 
+  if (payload.status && !payload.displayStatus) {
+    payload.displayStatus = payload.status;
+    delete payload.status;
+  }
+
   return payload;
+}
+
+export async function syncAllFirebaseChefsToMongo() {
+  initFirebaseAdmin();
+  const db = getFirestore();
+  const snapshot = await db.collection('users').get();
+
+  for (const doc of snapshot.docs) {
+    try {
+      await syncFirebaseChefToMongo(doc.id);
+    } catch (err) {
+      console.error(`Failed to sync Firebase chef ${doc.id} to Mongo:`, err.message || err);
+    }
+  }
+}
+
+export async function syncUnlinkedMongoChefsToFirebase() {
+  const unlinkedChefs = await Chef.find({
+    $or: [
+      { firebaseId: { $exists: false } },
+      { firebaseId: null },
+      { firebaseId: '' },
+    ],
+  });
+
+  for (const chef of unlinkedChefs) {
+    try {
+      await syncChefToFirebase(chef);
+    } catch (err) {
+      console.error(`Failed to sync Mongo chef ${chef._id} to Firebase:`, err.message || err);
+    }
+  }
+}
+
+export async function syncChefToFirebase(chefDoc, changes = {}) {
+  initFirebaseAdmin();
+  if (!chefDoc) throw new Error('Chef document is required for Firebase sync');
+
+  const source = chefDoc.toObject ? chefDoc.toObject() : chefDoc;
+  const payload = buildFirebaseUpdatePayload({ ...source, ...changes });
+
+  if (!chefDoc.firebaseId) {
+    const firebaseChef = await createFirebaseChefById(payload);
+    if (chefDoc.toObject && chefDoc.save) {
+      chefDoc.firebaseId = firebaseChef.firebaseId;
+      await chefDoc.save();
+    }
+    return firebaseChef;
+  }
+
+  const updatedFirebaseChef = await updateFirebaseChefById(chefDoc.firebaseId, payload);
+  if (updatedFirebaseChef) {
+    return updatedFirebaseChef;
+  }
+
+  const firebaseChef = await createFirebaseChefById(payload);
+  if (chefDoc.toObject && chefDoc.save) {
+    chefDoc.firebaseId = firebaseChef.firebaseId;
+    await chefDoc.save();
+  }
+  return firebaseChef;
+}
+
+export async function syncFirebaseChefToMongo(firebaseId, overrides = {}) {
+  initFirebaseAdmin();
+  const firebaseChef = await getFirebaseChefById(firebaseId);
+  if (!firebaseChef) return null;
+
+  const existing = await Chef.findOne({ firebaseId });
+  const chefData = {
+    ...firebaseChef,
+    ...overrides,
+    firebaseId: firebaseChef.firebaseId,
+  };
+
+  if (!chefData.slug) {
+    const baseSlug = firebaseChef.name
+      ? firebaseChef.name.toString().trim().toLowerCase().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '')
+      : `chef-${firebaseId.slice(0, 5)}`;
+    chefData.slug = `${baseSlug}-${firebaseId.slice(0, 5)}`;
+  }
+
+  if (existing) {
+    return await Chef.findByIdAndUpdate(existing._id, chefData, {
+      new: true,
+      setDefaultsOnInsert: true,
+    });
+  }
+
+  return await Chef.create(chefData);
+}
+
+export async function createFirebaseChefById(body) {
+  initFirebaseAdmin();
+  const db = getFirestore();
+  const payload = buildFirebaseUpdatePayload(body);
+
+  if (!payload.name) {
+    throw new Error('Chef name is required');
+  }
+
+  payload.displayStatus = payload.displayStatus || 'Pending';
+  payload.role = payload.role || 'Chef';
+
+  const docRef = await db.collection('users').add(payload);
+  const doc = await docRef.get();
+  return normalizeFirebaseChefDoc(doc.id, doc.data());
 }
 
 export async function getFirebaseChefById(id) {
