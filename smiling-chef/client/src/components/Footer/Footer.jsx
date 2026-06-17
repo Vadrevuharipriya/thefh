@@ -7,7 +7,8 @@ import {
   Youtube,
   Twitter,
   ArrowUpRight,
-  ExternalLink
+  ExternalLink,
+  Linkedin
 } from 'lucide-react';
 
 import { Link, useLocation } from 'react-router-dom';
@@ -127,11 +128,14 @@ const contactItems = [
   },
 ];
 
+const SOCIAL_LINKEDIN = 'https://www.linkedin.com/company/thefamoushalwai-official/about/';
+
 const socialIcons = [
-  Facebook,
-  Instagram,
-  Youtube,
-  Twitter,
+  { Icon: Facebook, href: 'https://www.facebook.com/thefamoushalwai' },
+  { Icon: Instagram, href: 'https://www.instagram.com/thefamoushalwai' },
+  { Icon: Youtube, href: 'https://www.youtube.com/@thefamoushalwai' },
+  { Icon: Twitter, href: 'https://twitter.com/thefamoushalwai' },
+  { Icon: Linkedin, href: SOCIAL_LINKEDIN, label: 'LinkedIn' },
 ];
 
 export default function Footer({
@@ -264,13 +268,16 @@ export default function Footer({
 
           {/* Social Icons */}
           <div className="flex gap-2 mb-8">
-            {socialIcons.map((Icon, i) => (
+            {socialIcons.map((s, i) => (
               <a
                 key={i}
-                href="#"
+                href={s.href || '#'}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="footer__social-icon"
+                aria-label={s.label || 'social-link'}
               >
-                <Icon size={15} />
+                <s.Icon size={15} />
               </a>
             ))}
           </div>

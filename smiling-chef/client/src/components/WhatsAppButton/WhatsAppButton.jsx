@@ -1,12 +1,12 @@
 import './WhatsAppButton.scss';
 
-export default function WhatsAppButton() {
+export default function WhatsAppButton({ hideOnMobile = false }) {
   return (
     <a
       href="https://api.whatsapp.com/send?phone=918926262675&text=Hello!%20I%20am%20looking%20a%20Halwai%20%26%20Chefs?"
       target="_blank"
       rel="noopener noreferrer"
-      className="whatsapp-btn"
+      className={`whatsapp-btn ${hideOnMobile ? 'whatsapp-btn--hide-on-mobile' : ''}`}
       aria-label="Chat on WhatsApp"
     >
       <svg viewBox="0 0 32 32" fill="white" xmlns="http://www.w3.org/2000/svg" style={{ width: '1.75rem', height: '1.75rem' }}>
