@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 import axios from 'axios';
 import { Plus, Edit2, Trash2, Search, Eye, ImageOff, Trash } from 'lucide-react';
 import AdminSidebar from '../../components/AdminSidebar/AdminSidebar';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 import './AdminBlogPage.scss';
 
 const CATEGORIES = ['Catering', 'Weddings', 'Corporate', 'Guide', 'Party Ideas', 'Recipes', 'Tips', 'Lifestyle'];
@@ -28,7 +30,7 @@ export default function AdminBlogPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingBlog, setEditingBlog] = useState(null);
   const [formData, setFormData] = useState({
-    title: '', slug: '', excerpt: '', content: '',
+    title: '', slug: '', excerpt: '', metaTitle: '', metaKeyword: '', metaDescription: '', content: '',
     image: '', category: '', author: 'The Famous Halwai Team',
     published: true,
   });
@@ -68,7 +70,7 @@ export default function AdminBlogPage() {
 
   const resetForm = () => {
     setFormData({
-      title: '', slug: '', excerpt: '', content: '',
+      title: '', slug: '', excerpt: '', metaTitle: '', metaKeyword: '', metaDescription: '', content: '',
       image: '', category: '', author: 'The Famous Halwai Team', published: true,
     });
     setImagePreview('');
@@ -86,6 +88,9 @@ export default function AdminBlogPage() {
       title: blog.title || '',
       slug: blog.slug || '',
       excerpt: blog.excerpt || '',
+      metaTitle: blog.metaTitle || '',
+      metaKeyword: blog.metaKeyword || '',
+      metaDescription: blog.metaDescription || '',
       content: blog.content || '',
       image: blog.image || '',
       category: blog.category || '',
@@ -128,6 +133,7 @@ export default function AdminBlogPage() {
     setImagePreview('');
   };
 
+
   const handleTitleChange = (e) => {
     const title = e.target.value;
     setFormData({
@@ -136,6 +142,22 @@ export default function AdminBlogPage() {
       slug: editingBlog ? formData.slug : generateSlug(title),
     });
   };
+
+  // ReactQuill toolbar configuration
+  const quillModules = {
+    toolbar: [
+      [{ 'header': [1, 2, 3, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+      ['blockquote', 'code-block'],
+      ['link', 'image'],
+      ['clean']
+    ]
+  };
+
+  const quillFormats = [
+    'header', 'bold', 'italic', 'underline', 'strike', 'list', 'bullet', 'blockquote', 'code-block', 'link', 'image'
+  ];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -332,6 +354,27 @@ export default function AdminBlogPage() {
               </div>
               <div className="form-row">
                 <div className="form-group">
+                  <label>Meta Title</label>
+                  <input type="text" value={formData.metaTitle}
+                    onChange={e => setFormData({ ...formData, metaTitle: e.target.value })}
+                    placeholder="SEO meta title" />
+                </div>
+                <div className="form-group">
+                  <label>Meta Keywords</label>
+                  <input type="text" value={formData.metaKeyword}
+                    onChange={e => setFormData({ ...formData, metaKeyword: e.target.value })}
+                    placeholder="Comma-separated keywords" />
+                </div>
+              </div>
+              <div className="form-group">
+                <label>Meta Description</label>
+                <textarea value={formData.metaDescription}
+                  onChange={e => setFormData({ ...formData, metaDescription: e.target.value })}
+                  rows="3"
+                  placeholder="Short SEO description for search engines…" />
+              </div>
+              <div className="form-row">
+                <div className="form-group">
                   <label>Category</label>
                   <select value={formData.category}
                     onChange={e => setFormData({ ...formData, category: e.target.value })}>
@@ -391,10 +434,15 @@ export default function AdminBlogPage() {
               </div>
               <div className="form-group">
                 <label>Content *</label>
-                <textarea value={formData.content}
-                  onChange={e => setFormData({ ...formData, content: e.target.value })}
-                  rows="8"
-                  placeholder="Blog post content (plain text or HTML)…" required />
+                <div className="rich-editor">
+                  <ReactQuill
+                    theme="snow"
+                    value={formData.content}
+                    onChange={(val) => setFormData({ ...formData, content: val })}
+                    modules={quillModules}
+                    formats={quillFormats}
+                  />
+                </div>
               </div>
               <div className="form-group form-group-inline">
                 <label>

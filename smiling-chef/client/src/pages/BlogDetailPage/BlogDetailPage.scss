@@ -342,6 +342,20 @@ $gray-900: #111827;
   box-shadow: 0 8px 20px rgba(201, 28, 36, 0.25);
 }
 
+.blog-detail__body blockquote {
+  margin: 0 0 1rem 0;
+  padding-left: 1rem;
+  border-left: 4px solid #cfcfcf;
+  color: #111;
+  font-style: italic;
+  font-size: 1.6rem;
+}
+
+.blog-detail__body ul,
+.blog-detail__body ol {
+  margin: 0.5rem 0 1rem 1.2rem;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;

@@ -17,6 +17,9 @@ function mapBlog(b) {
     slug: b.slug,
     title: b.title,
     excerpt: b.excerpt || '',
+    metaTitle: b.metaTitle || '',
+    metaKeyword: b.metaKeyword || '',
+    metaDescription: b.metaDescription || '',
     image: b.image || '',
     category: b.category || 'General',
     date: b.date ? new Date(b.date) : new Date(),
@@ -320,6 +323,25 @@ export default function BlogDetailPage() {
       })
       .finally(() => setLoading(false));
   }, [slug]);
+
+  useEffect(() => {
+    if (!post) return;
+
+    document.title = post.metaTitle || post.title || 'Blog';
+
+    const updateMetaTag = (name, content) => {
+      let tag = document.querySelector(`meta[name="${name}"]`);
+      if (!tag) {
+        tag = document.createElement('meta');
+        tag.setAttribute('name', name);
+        document.head.appendChild(tag);
+      }
+      tag.setAttribute('content', content);
+    };
+
+    updateMetaTag('description', post.metaDescription || post.excerpt || '');
+    updateMetaTag('keywords', post.metaKeyword || '');
+  }, [post]);
 
   if (loading) {
     return (
