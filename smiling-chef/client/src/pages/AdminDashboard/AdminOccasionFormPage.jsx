@@ -133,11 +133,11 @@ const [loading, setLoading] = useState(false);
        const token = localStorage.getItem('adminToken');
        const payload = { ...form };
        
-+      // Ensure pageDescription is present
-+      if (!payload.pageDescription || payload.pageDescription.trim() === '') {
-+        throw new Error('Page description is required.');
-+      }
-+      
+       // Ensure pageDescription is present
+       if (!payload.pageDescription || payload.pageDescription.trim() === '') {
+         throw new Error('Page description is required.');
+       }
+       
        // Validate innerHeader and occasion image sizes (base64)
        if (payload.innerHeader) {
          const innerSize = payload.innerHeader.length * 0.75;
