@@ -35,3 +35,14 @@
   0%   { transform: scale(1);   opacity: 0.8; }
   100% { transform: scale(1.7); opacity: 0; }
 }
+
+/* hide on small screens when flagged by prop */
+.whatsapp-btn--hide-on-mobile {
+  display: inline-flex;
+}
+
+@media (max-width: 768px) {
+  .whatsapp-btn--hide-on-mobile {
+    display: none !important;
+  }
+}

@@ -61,6 +61,15 @@ const hidePartnerCTA = [
   const hideFooterMobile = pathname === '/view-menu-cart' || pathname === '/enquiry';
   const hideFooterPage = pathname === '/view-menu-cart' || pathname === '/enquiry';
 
+  const hideWhatsAppOnMobilePaths = [
+    '/our-menu',
+    '/bhaji',
+    '/chutney-services',
+    '/pickle-achhar',
+  ];
+
+  const hideWhatsAppOnMobile = hideWhatsAppOnMobilePaths.some(p => pathname === p || pathname.startsWith(p + '/'));
+
   return (
     <div className="app-layout">
       {!isAdminRoute && <Navbar />}
@@ -68,7 +77,7 @@ const hidePartnerCTA = [
         <AppRoutes />
       </div>
       {!isAdminRoute && !isAccountRoute && !hideFooterPage && <Footer showPartnerCTA={!hidePartnerCTA} hideOnMobile={hideFooterMobile} />}
-      {!isAdminRoute && !isAccountRoute && <WhatsAppButton />}
+      {!isAdminRoute && !isAccountRoute && <WhatsAppButton hideOnMobile={hideWhatsAppOnMobile} />}
       <AuthModal />
     </div>
   );

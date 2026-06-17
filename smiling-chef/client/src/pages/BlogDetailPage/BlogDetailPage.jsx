@@ -371,9 +371,9 @@ export default function BlogDetailPage() {
           <div className="cp-sidebar-follow">
             <h3 className="cp-sidebar-follow__title">Follow us on</h3>
             <div className="cp-sidebar-follow__icons">
-              <a href="#" aria-label="Facebook"><Facebook size={18} /></a>
-              <a href="#" aria-label="Twitter"><Twitter size={18} /></a>
-              <a href="#" aria-label="LinkedIn"><Linkedin size={18} /></a>
+              <a href="https://www.facebook.com/thefamoushalwai" aria-label="Facebook" target="_blank" rel="noopener noreferrer"><Facebook size={18} /></a>
+              <a href="https://twitter.com/thefamoushalwai" aria-label="Twitter" target="_blank" rel="noopener noreferrer"><Twitter size={18} /></a>
+              <a href="https://www.linkedin.com/company/thefamoushalwai-official/about/" aria-label="LinkedIn" target="_blank" rel="noopener noreferrer"><Linkedin size={18} /></a>
             </div>
           </div>
         </aside>

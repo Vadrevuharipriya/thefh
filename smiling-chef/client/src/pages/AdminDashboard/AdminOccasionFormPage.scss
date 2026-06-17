@@ -290,6 +290,28 @@
   margin-top: 0.5rem;
 }
 
+/* Rich editor styles */
+.rich-editor {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.rich-editor .ql-editor {
+  min-height: 160px;
+  padding: 0.85rem;
+}
+
+.rich-editor .ql-editor blockquote {
+  margin: 0 0 1rem 0;
+  padding-left: 1rem;
+  border-left: 4px solid #cfcfcf;
+  color: #333;
+  font-style: italic;
+  font-size: 1.15rem;
+}
+
 .dimension-note {
   font-size: 0.85rem;
   color: #7f8c8d;

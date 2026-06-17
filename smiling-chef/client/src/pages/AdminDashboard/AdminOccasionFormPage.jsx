@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import AdminSidebar from '../../components/AdminSidebar/AdminSidebar';
 import { Trash2 } from 'lucide-react';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 import './AdminOccasionFormPage.scss';
 
 export default function AdminOccasionFormPage() {
@@ -61,6 +63,22 @@ const [loading, setLoading] = useState(false);
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  // ReactQuill toolbar configuration for page description
+  const quillModules = {
+    toolbar: [
+      [{ 'header': [1, 2, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+      ['blockquote', 'code-block'],
+      ['link', 'image'],
+      ['clean']
+    ]
+  };
+
+  const quillFormats = [
+    'header', 'bold', 'italic', 'underline', 'strike', 'list', 'bullet', 'blockquote', 'code-block', 'link', 'image'
+  ];
+
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -115,6 +133,11 @@ const [loading, setLoading] = useState(false);
        const token = localStorage.getItem('adminToken');
        const payload = { ...form };
        
++      // Ensure pageDescription is present
++      if (!payload.pageDescription || payload.pageDescription.trim() === '') {
++        throw new Error('Page description is required.');
++      }
++      
        // Validate innerHeader and occasion image sizes (base64)
        if (payload.innerHeader) {
          const innerSize = payload.innerHeader.length * 0.75;
@@ -332,15 +355,15 @@ const [loading, setLoading] = useState(false);
             {/* Page Description */}
             <div className="form-group">
               <label htmlFor="pageDescription">Page Description <span className="required">*</span></label>
-              <textarea
-                id="pageDescription"
-                name="pageDescription"
-                value={form.pageDescription}
-                onChange={handleChange}
-                placeholder="Enter page description"
-                rows="4"
-                required
-              />
+              <div className="rich-editor">
+                <ReactQuill
+                  theme="snow"
+                  value={form.pageDescription}
+                  onChange={(val) => setForm({ ...form, pageDescription: val })}
+                  modules={quillModules}
+                  formats={quillFormats}
+                />
+              </div>
             </div>
 
             {/* Display Status */}
