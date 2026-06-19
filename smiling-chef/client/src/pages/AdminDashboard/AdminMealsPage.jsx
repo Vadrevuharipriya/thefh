@@ -14,15 +14,9 @@ export default function AdminMealsPage() {
     setLoading(true);
     setError('');
     try {
-      const token = localStorage.getItem('adminToken');
-      if (!token) {
-        setError('Not authenticated. Please login again.');
-        setLoading(false);
-        return;
-      }
+
       // Fetch only category meals (Breakfast, Lunch, Snacks, Dinner)
       const res = await axios.get('/api/admin/meals/categories', {
-        headers: { Authorization: `Bearer ${token}` }
       });
       setMeals(res.data);
     } catch (err) {
@@ -35,14 +29,8 @@ export default function AdminMealsPage() {
    const handleDelete = async (id, name) => {
      if (!confirm(`Are you sure you want to delete "${name}"? This will also delete all its schedules.`)) return;
      try {
-       const token = localStorage.getItem('adminToken');
-       if (!token) {
-         alert('Session expired. Please login again.');
-         navigate('/admin/login');
-         return;
-       }
+
        await axios.delete(`/api/admin/meals/${id}`, {
-         headers: { Authorization: `Bearer ${token}` }
        });
        setMeals(meals.filter(m => m._id !== id));
        alert('Meal deleted successfully');
@@ -68,20 +56,13 @@ export default function AdminMealsPage() {
      console.log(`[Status Change] Meal ID: ${id}, Current: ${currentStatus}, New: ${newStatus}`);
      
      try {
-       const token = localStorage.getItem('adminToken');
-       console.log('[Status Change] Token:', token ? 'present' : 'MISSING');
-       if (!token) {
-         alert('Session expired. Please login again.');
-         navigate('/admin/login');
-         return;
-       }
+
        
        const url = `/api/admin/meals/${id}`;
        console.log('[Status Change] PUT', url, { displayStatus: newStatus });
        
        const response = await axios.put(url, { displayStatus: newStatus }, {
          headers: { 
-           Authorization: `Bearer ${token}`,
            'Content-Type': 'application/json'
          }
        });

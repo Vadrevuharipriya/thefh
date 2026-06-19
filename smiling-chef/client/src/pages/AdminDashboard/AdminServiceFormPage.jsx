@@ -27,11 +27,7 @@ export default function AdminServiceFormPage() {
 
   useEffect(() => {
     if (id) {
-      const token = localStorage.getItem('adminToken');
-      if (!token) { setError('Not authenticated. Please login again.'); return; }
-      axios.get(`/api/admin/services/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      axios.get(`/api/admin/services/${id}`)
         .then(res => {
           const data = res.data;
           setForm({
@@ -73,10 +69,8 @@ export default function AdminServiceFormPage() {
     formData.append('image', file);
 
     try {
-      const token = localStorage.getItem('adminToken');
       const res = await axios.post('/api/admin/upload', formData, {
         headers: {
-          Authorization: `Bearer ${token}`
         }
       });
       setForm({ ...form, image: res.data.url });
@@ -96,14 +90,11 @@ export default function AdminServiceFormPage() {
     setLoading(true);
     setError('');
     try {
-      const token = localStorage.getItem('adminToken');
       if (id) {
         await axios.put(`/api/admin/services/${id}`, form, {
-          headers: { Authorization: `Bearer ${token}` }
         });
       } else {
         await axios.post('/api/admin/services', form, {
-          headers: { Authorization: `Bearer ${token}` }
         });
       }
       navigate('/admin/services');

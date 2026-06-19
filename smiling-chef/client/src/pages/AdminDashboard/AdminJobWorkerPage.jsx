@@ -19,7 +19,6 @@ export default function AdminJobWorkerPage() {
   const fetchWorkers = useCallback(async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('adminToken');
       const params = new URLSearchParams();
       if (search) params.set('search', search);
       if (statusFilter) params.set('status', statusFilter);
@@ -27,7 +26,6 @@ export default function AdminJobWorkerPage() {
       let localData = [];
       try {
         const localRes = await axios.get(`/api/admin/chefs/admin?${params}`, {
-          headers: { Authorization: `Bearer ${token}` },
         });
         localData = (localRes.data || []).map((c) => ({
           ...c,
@@ -71,7 +69,6 @@ export default function AdminJobWorkerPage() {
       let firebaseData = [];
       try {
         const firebaseRes = await axios.get(`/api/admin/firebase/chefs?${params}`, {
-          headers: { Authorization: `Bearer ${token}` },
         });
 
         const localByFirebaseId = new Map(localData.filter((c) => c.firebaseId).map((c) => [c.firebaseId, c]));
@@ -147,7 +144,28 @@ if (!name && !email && !mobile) {
         console.error('Failed to fetch Firebase chefs:', err);
       }
 
-      setWorkers([...localData, ...firebaseData]);
+      // Merge local + firebase sources and apply a client-side fallback filter
+      // when `search` is present. This ensures entries that may not be
+      // matched server-side (due to sync timing or nested fields) still
+      // appear in results for the admin user.
+      let merged = [...localData, ...firebaseData];
+      if (search && typeof search === 'string' && search.trim() !== '') {
+        const q = search.trim().toLowerCase();
+        merged = merged.filter((w) => {
+          const name = (w.name || '').toString().toLowerCase();
+          const email = (w.email || '').toString().toLowerCase();
+          const mobile = (w.mobile || '').toString();
+          const city = (w.city || '').toString().toLowerCase();
+          return (
+            (name && name.includes(q)) ||
+            (email && email.includes(q)) ||
+            (mobile && mobile.includes(q)) ||
+            (city && city.includes(q))
+          );
+        });
+      }
+
+      setWorkers(merged);
     } catch (err) {
       console.error('Failed to fetch workers:', err);
       setError('Failed to fetch workers. Please ensure the server is running.');
@@ -173,7 +191,6 @@ if (!name && !email && !mobile) {
 
     try {
       setError('');
-      const token = localStorage.getItem('adminToken');
       const id = worker._id || worker.id || worker.firebaseId;
       if (!id) {
         setError('Unable to delete worker: missing id.');
@@ -181,7 +198,6 @@ if (!name && !email && !mobile) {
       }
 
       const config = {
-        headers: { Authorization: `Bearer ${token}` },
       };
 
       try {
@@ -207,9 +223,7 @@ if (!name && !email && !mobile) {
     const index = STATUS_OPTIONS.indexOf(worker.displayStatus);
     const nextStatus = STATUS_OPTIONS[(index + 1) % STATUS_OPTIONS.length];
     try {
-      const token = localStorage.getItem('adminToken');
       const res = await axios.put(`/api/admin/chefs/${worker._id}`, { displayStatus: nextStatus }, {
-        headers: { Authorization: `Bearer ${token}` },
       });
       setWorkers((prev) => prev.map((w) => (w._id === worker._id ? { ...w, displayStatus: res.data.displayStatus } : w)));
     } catch (err) {

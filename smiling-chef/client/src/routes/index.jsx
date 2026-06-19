@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Route, Routes, Navigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import HomePage from '../pages/HomePage/HomePage';
@@ -56,21 +57,36 @@ import AdminReferralCodePage from '../pages/AdminDashboard/AdminReferralCodePage
 import AdminChefPage from '../pages/AdminDashboard/AdminChefPage';
 import GoogleCallbackPage from '../pages/GoogleCallbackPage';
 
-const isAuthenticated = () => {
-  const token = localStorage.getItem('adminToken');
-  if (!token) return false;
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    return payload.exp > Date.now() / 1000;
-  } catch {
-    return false;
-  }
-};
-
 function ProtectedRoute({ children }) {
-  if (!isAuthenticated()) {
+  const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const response = await fetch('/api/auth/me', {
+          credentials: 'include'
+        });
+        const data = await response.json();
+        setIsAuthenticated(response.ok && data?.data?.role === 'admin');
+      } catch {
+        setIsAuthenticated(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkSession();
+  }, []);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!isAuthenticated) {
     return <Navigate to="/admin/login" replace />;
   }
+
   return children;
 }
 

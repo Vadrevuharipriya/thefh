@@ -32,9 +32,7 @@ export default function AdminBannerPage() {
      setLoading(true);
      setError('');
      try {
-       const token = localStorage.getItem('adminToken');
       const res = await axios.get('/api/admin/banners', {
-         headers: { Authorization: `Bearer ${token}` }
        });
        setBanners(res.data);
      } catch (err) {
@@ -63,7 +61,6 @@ export default function AdminBannerPage() {
      const newStatus = banner.displayStatus === 'Approved' ? 'Pending' : 'Approved';
      try {
        await axios.put(`/api/admin/banners/${banner._id}`, { displayStatus: newStatus }, {
-         headers: { Authorization: `Bearer ${localStorage.getItem('adminToken')}` }
        });
       await fetchBanners();
       // notify other tabs/clients to refresh public banners
@@ -88,7 +85,6 @@ export default function AdminBannerPage() {
      if (!confirm(`Delete banner "${name}"?`)) return;
      try {
        await axios.delete(`/api/admin/banners/${id}`, {
-         headers: { Authorization: `Bearer ${localStorage.getItem('adminToken')}` }
        });
       await fetchBanners();
       try { localStorage.setItem('bannersUpdated', String(Date.now())); } catch (e) { /* ignore */ }
@@ -122,10 +118,8 @@ export default function AdminBannerPage() {
     formDataUpload.append('image', file);
 
     try {
-      const token = localStorage.getItem('adminToken');
       const res = await axios.post('/api/admin/upload', formDataUpload, {
         headers: {
-          Authorization: `Bearer ${token}`
         }
       });
       setFormData({ ...formData, image: res.data.url });
@@ -180,11 +174,9 @@ export default function AdminBannerPage() {
        const body = { ...formData };
        if (editingBanner) {
          await axios.put(`/api/admin/banners/${editingBanner._id}`, body, {
-           headers: { Authorization: `Bearer ${localStorage.getItem('adminToken')}` }
          });
        } else {
          await axios.post(`/api/admin/banners`, body, {
-           headers: { Authorization: `Bearer ${localStorage.getItem('adminToken')}` }
          });
        }
        setShowForm(false);

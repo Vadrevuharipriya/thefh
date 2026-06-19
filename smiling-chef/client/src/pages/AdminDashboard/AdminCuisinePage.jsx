@@ -13,14 +13,8 @@ export default function AdminCuisinePage() {
      setLoading(true);
      setError('');
      try {
-       const token = localStorage.getItem('adminToken');
-       if (!token) {
-         setError('Not authenticated. Please login again.');
-         setLoading(false);
-         return;
-       }
+
        const res = await axios.get('/api/admin/cuisines', {
-         headers: { Authorization: `Bearer ${token}` }
        });
        setCuisines(res.data);
      } catch (err) {
@@ -34,7 +28,6 @@ export default function AdminCuisinePage() {
     const newStatus = currentStatus === 'Approved' ? 'Pending' : 'Approved';
     try {
       await axios.put(`/api/admin/cuisines/${id}`, { displayStatus: newStatus }, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('adminToken')}` }
       });
       setCuisines(cuisines.map(c => 
         c._id === id ? { ...c, displayStatus: newStatus } : c
@@ -118,7 +111,7 @@ export default function AdminCuisinePage() {
                           {c.displayStatus === 'Approved' ? 'Unapprove' : 'Approve'}
                         </button>
                         <Link to={`/admin/cuisine/${c._id}/menu`} className="btn-action btn-view">
-                          View Menu Item
+                          View Items
                         </Link>
                       </td>
                     </tr>

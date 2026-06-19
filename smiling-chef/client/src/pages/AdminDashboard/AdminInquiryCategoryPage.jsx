@@ -25,12 +25,9 @@ export default function AdminInquiryCategoryPage({ category }) {
   const fetchInquiries = useCallback(async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('adminToken');
       console.log('[AdminInquiryCategoryPage] Fetching inquiries for category:', category);
-      console.log('[AdminInquiryCategoryPage] Token present:', !!token);
       const res = await fetch(`/api/inquiries/category/${category}`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
@@ -57,11 +54,9 @@ export default function AdminInquiryCategoryPage({ category }) {
   const handleDelete = async (id) => {
     if (!confirm('Are you sure you want to delete this inquiry?')) return;
     try {
-      const token = localStorage.getItem('adminToken');
       const res = await fetch(`/api/enquiries/${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
@@ -79,12 +74,10 @@ export default function AdminInquiryCategoryPage({ category }) {
   const handleStatusUpdate = async (id, status) => {
     setUpdateStatusLoading(true);
     try {
-      const token = localStorage.getItem('adminToken');
       const res = await fetch(`/api/enquiries/${id}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({ status })
       });

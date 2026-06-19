@@ -18,21 +18,28 @@ export default function AdminDashboard() {
   const fetchStats = async () => {
     try {
       const [productsRes, blogsRes, enquiriesRes] = await Promise.all([
-        fetch('/api/products'),
-        fetch('/api/blogs'),
-        fetch('/api/enquiries')
+        fetch('/api/products', { credentials: 'include' }),
+        fetch('/api/blogs', { credentials: 'include' }),
+        fetch('/api/enquiries', { credentials: 'include' })
       ]);
 
-      const [products, blogs, enquiries] = await Promise.all([
+      const [productsData, blogsData, enquiriesData] = await Promise.all([
         productsRes.json(),
         blogsRes.json(),
         enquiriesRes.json()
       ]);
 
+      const normalizeCount = (resp) => {
+        if (!resp) return 0;
+        if (Array.isArray(resp)) return resp.length;
+        if (Array.isArray(resp.data)) return resp.data.length;
+        return 0;
+      };
+
       setStats({
-        products: products.length,
-        blogs: blogs.length,
-        enquiries: enquiries.length
+        products: normalizeCount(productsData),
+        blogs: normalizeCount(blogsData),
+        enquiries: normalizeCount(enquiriesData)
       });
     } catch (err) {
       console.error('Failed to fetch stats:', err);

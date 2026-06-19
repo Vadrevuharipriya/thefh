@@ -14,15 +14,8 @@ export default function AdminServicesPage() {
      setLoading(true);
      setError('');
      try {
-       const token = localStorage.getItem('adminToken');
-       console.log('[Services] Token:', token ? 'present' : 'MISSING');
-       if (!token) {
-         setError('Not authenticated. Please login again.');
-         setLoading(false);
-         return;
-       }
+
        const res = await axios.get('/api/admin/services', {
-         headers: { Authorization: `Bearer ${token}` }
        });
        console.log('[Services] Fetched:', res.data.length, 'services');
        setServices(res.data);
@@ -39,9 +32,7 @@ export default function AdminServicesPage() {
   const handleStatusChange = async (id, currentStatus) => {
     const newStatus = currentStatus === 'Approved' ? 'Pending' : 'Approved';
     try {
-      const token = localStorage.getItem('adminToken');
       await axios.put(`/api/admin/services/${id}`, { displayStatus: newStatus }, {
-        headers: { Authorization: `Bearer ${token}` }
       });
       setServices(services.map(s =>
         s._id === id ? { ...s, displayStatus: newStatus } : s
@@ -56,7 +47,6 @@ export default function AdminServicesPage() {
     if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
     try {
       await axios.delete(`/api/admin/services/${id}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('adminToken')}` }
       });
       setServices(services.filter(s => s._id !== id));
       alert('Service deleted successfully');

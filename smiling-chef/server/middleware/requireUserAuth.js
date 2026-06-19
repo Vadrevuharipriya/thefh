@@ -1,20 +1,19 @@
-import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+import { getTokenFromRequest, verifyJwtToken } from '../utils/auth.js';
+import { sendUnauthorized } from '../utils/responseHandler.js';
 
 const requireUserAuth = async (req, res, next) => {
-  const authHeader = req.headers.authorization;
+  const token = getTokenFromRequest(req);
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Unauthorized' });
+  if (!token) {
+    return sendUnauthorized(res, 'No token provided');
   }
 
   try {
-    const decoded = jwt.verify(authHeader.split(' ')[1], JWT_SECRET);
+    const decoded = verifyJwtToken(token);
     req.userId = decoded.userId;
     next();
   } catch {
-    return res.status(401).json({ error: 'Invalid token' });
+    return sendUnauthorized(res, 'Invalid or expired token');
   }
 };
 

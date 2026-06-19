@@ -48,44 +48,32 @@ const menuFilterCategories = [
 // ─── Cuisine Section ──────────────────────────────────────────────────────────
 function CuisineSection({
   section,
-  activeCategory,
-  vegOnly,
-  nonVegOnly,
+  filteredItems,
+  selectedCuisine,
   plateMap,
   onAdd,
   onRemove
 }) {
-const items = section.items.filter(dish => {
-    if (activeCategory !== 'all' && dish.category !== activeCategory)
-      return false;
-
-    if (vegOnly && !dish.veg)
-      return false;
-
-    if (nonVegOnly && dish.veg)
-      return false;
-
-    return true;
-  });
-
   return (
     <div className="menu-section" id={`section-${section.id}`}>
-      <div className="menu-section__header">
-        <span className="menu-section__emoji">
-          {section.emoji}
-        </span>
-
-        <h2 className="menu-section__title">
-          {section.name}
-          <span className="menu-section__count">
-            {section.items.length} dish{section.items.length !== 1 ? 'es' : ''}
+      {selectedCuisine === 'all' && (
+        <div className="menu-section__header">
+          <span className="menu-section__emoji">
+            {section.emoji}
           </span>
-        </h2>
-      </div>
 
-      {items.length > 0 ? (
+          <h2 className="menu-section__title">
+            {section.name}
+            <span className="menu-section__count">
+              {filteredItems.length} dish{filteredItems.length !== 1 ? 'es' : ''}
+            </span>
+          </h2>
+        </div>
+      )}
+
+      {filteredItems.length > 0 ? (
         <div className="menu-section__grid">
-          {items.map(dish => (
+          {filteredItems.map(dish => (
             <MenuDishCard
               key={dish.id}
               dish={dish}
@@ -123,6 +111,7 @@ export default function MenuPage() {
 
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedCuisine, setSelectedCuisine] = useState('all');
+  const [currentCuisineTitle, setCurrentCuisineTitle] = useState('All Cuisines');
   const [vegOnly, setVegOnly] = useState(false);
   const [nonVegOnly, setNonVegOnly] = useState(false);
   const [plate, setPlate] = useState(() => readCommonCartPlate());
@@ -268,20 +257,21 @@ export default function MenuPage() {
     fetchMenuData();
   }, []); // Empty deps - run once on mount
 
-// Check if any sections have visible items that match current filters
-  // When category is 'all', show all cuisines. When a specific category is selected,
-  // only show cuisines that have items matching that category
-  const hasFilteredItems = menuSections.some(section => {
-    if (activeCategory === 'all') {
-      return true; // Show all cuisines when "All Dishes" is selected
-    }
-    return section.items.some(dish => {
-      if (dish.category !== activeCategory) return false;
-      if (vegOnly && !dish.veg) return false;
-      if (nonVegOnly && dish.veg) return false;
-      return true;
-    });
+const getFilteredSectionItems = (section) => section.items.filter(dish => {
+    if (activeCategory !== 'all' && dish.category !== activeCategory) return false;
+    if (vegOnly && !dish.veg) return false;
+    if (nonVegOnly && dish.veg) return false;
+    return true;
   });
+
+  const filteredMenuSections = menuSections
+    .map(section => ({ ...section, filteredItems: getFilteredSectionItems(section) }))
+    .filter(section => selectedCuisine === 'all' ? section.filteredItems.length > 0 : section.id === selectedCuisine);
+
+  const activeCuisineSection = filteredMenuSections.find(section => section.id === selectedCuisine) ||
+    filteredMenuSections.find(section => section.name === currentCuisineTitle) ||
+    menuSections.find(section => section.id === selectedCuisine) ||
+    menuSections.find(section => section.name === currentCuisineTitle);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -295,6 +285,66 @@ export default function MenuPage() {
       }, 400);
     }
   }, [cuisineParam]);
+
+  useEffect(() => {
+    const updateCurrentCuisineFromScroll = () => {
+      if (selectedCuisine !== 'all') return;
+
+      const sectionElements = Array.from(document.querySelectorAll('.menu-section'));
+      if (!sectionElements.length) return;
+
+      const stickyBar = document.querySelector('.menu-filters');
+      const offset = (stickyBar?.getBoundingClientRect().height || 140) + 10;
+
+      const firstSectionRect = sectionElements[0].getBoundingClientRect();
+      if (firstSectionRect.top > offset) {
+        setCurrentCuisineTitle('All Cuisines');
+        return;
+      }
+
+      const visibleSection = sectionElements.find((section) => {
+        const rect = section.getBoundingClientRect();
+        return rect.top <= offset && rect.bottom > offset;
+      }) || sectionElements[sectionElements.length - 1];
+
+      if (visibleSection) {
+        const cuisineId = visibleSection.id.replace('section-', '');
+        const cuisine = menuSections.find(section => section.id === cuisineId);
+        if (cuisine) {
+          setCurrentCuisineTitle(cuisine.name);
+        }
+      }
+    };
+
+    updateCurrentCuisineFromScroll();
+    window.addEventListener('scroll', updateCurrentCuisineFromScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', updateCurrentCuisineFromScroll);
+    };
+  }, [menuSections, selectedCuisine]);
+
+  useEffect(() => {
+    if (selectedCuisine !== 'all') {
+      const cuisine = menuSections.find(section => section.id === selectedCuisine);
+      if (cuisine) {
+        setCurrentCuisineTitle(cuisine.name);
+      }
+    } else {
+      setCurrentCuisineTitle('All Cuisines');
+    }
+  }, [selectedCuisine, menuSections]);
+
+  useEffect(() => {
+    if (!cuisineParam || !menuSections.length) return;
+    const cuisine = menuSections.find(section => section.id === cuisineParam);
+    if (cuisine) {
+      setSelectedCuisine(cuisineParam);
+      setCurrentCuisineTitle(cuisine.name);
+      const el = document.getElementById(`section-${cuisineParam}`);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [cuisineParam, menuSections]);
 
   const handleAdd = dish => {
     setPlate(prev => ({ ...prev, [dish.id]: (prev[dish.id] || 0) + 1 }));
@@ -412,10 +462,26 @@ export default function MenuPage() {
         {/* Cuisine & Category Tabs */}
         <div className="menu-filters__tabs">
           <div className="menu-filters__tabs-left">
-            {/* Cuisine Filter */}
+            <div className="menu-filters__cuisine-title">
+              {/* <span>Current Cuisine</span> */}
+              <div className="menu-filters__cuisine-title-main">
+                <span className="menu-filters__cuisine-emoji">
+                  {selectedCuisine === 'all' ? '🍽️' : activeCuisineSection?.emoji}
+                </span>
+                <h2>{currentCuisineTitle}</h2>
+                {selectedCuisine !== 'all' && activeCuisineSection && (
+                  <span className="menu-filters__cuisine-count">
+                    {activeCuisineSection.items.length} dish{activeCuisineSection.items.length !== 1 ? 'es' : ''}
+                  </span>
+                )}
+              </div>
+            </div>
             <div className="menu-filters__cuisine-tabs">
               <button
-                onClick={() => setSelectedCuisine('all')}
+                onClick={() => {
+                  setSelectedCuisine('all');
+                  setCurrentCuisineTitle('All Cuisines');
+                }}
                 className={`menu-tab${selectedCuisine === 'all' ? ' menu-tab--active' : ''}`}
               >
                 All Cuisines
@@ -423,7 +489,10 @@ export default function MenuPage() {
               {menuSections.map(section => (
                 <button
                   key={section.id}
-                  onClick={() => setSelectedCuisine(section.id)}
+                  onClick={() => {
+                    setSelectedCuisine(section.id);
+                    setCurrentCuisineTitle(section.name);
+                  }}
                   className={`menu-tab${selectedCuisine === section.id ? ' menu-tab--active' : ''}`}
                 >
                   {section.emoji} {section.name}
@@ -547,30 +616,21 @@ export default function MenuPage() {
         menuSections.length === 0 ? (
           <EmptyState />
         ) : (
-          menuSections
-            .filter(section => selectedCuisine === 'all' || section.id === selectedCuisine)
-            .filter(section => {
-              if (activeCategory === 'all') return true;
-
-              return section.items.some(item => {
-                if (item.category !== activeCategory) return false;
-                if (vegOnly && !item.veg) return false;
-                if (nonVegOnly && item.veg) return false;
-                return true;
-              });
-            })
-            .map(section => (
-              <CuisineSection
-                key={section.id}
-                section={section}
-                activeCategory={activeCategory}
-                vegOnly={vegOnly}
-                nonVegOnly={nonVegOnly}
-                plateMap={plate}
-                onAdd={handleAdd}
-                onRemove={handleRemove}
-              />
-            ))
+          filteredMenuSections.length === 0 ? (
+          <EmptyState />
+        ) : (
+          filteredMenuSections.map(section => (
+            <CuisineSection
+              key={section.id}
+              section={section}
+              filteredItems={section.filteredItems}
+              selectedCuisine={selectedCuisine}
+              plateMap={plate}
+              onAdd={handleAdd}
+              onRemove={handleRemove}
+            />
+          ))
+        )
         )
       )}
       </div>

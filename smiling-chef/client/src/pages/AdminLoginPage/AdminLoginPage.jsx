@@ -52,6 +52,7 @@ export default function AdminLoginPage() {
             'Content-Type':
               'application/json'
           },
+          credentials: 'include',
           body: JSON.stringify({
             email,
             password
@@ -64,11 +65,6 @@ export default function AdminLoginPage() {
       console.log(data);
 
       if (response.ok) {
-        localStorage.setItem(
-          'adminToken',
-          data.token
-        );
-
         navigate('/admin/dashboard');
 
       } else {

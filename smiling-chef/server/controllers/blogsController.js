@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import Blog from '../models/Blog.js';
+import { sendSuccess, sendNotFound, sendServerError, sendValidationError } from '../utils/responseHandler.js';
 
 const DEFAULT_AUTHOR = 'The Famous Halwai Team';
 
@@ -58,10 +59,11 @@ async function normalizeBlogPayload(payload, currentId = null) {
 export const getPublicBlogs = async (req, res) => {
   try {
     const data = await Blog.find({ published: true }).sort({ date: -1 });
-    res.json(data);
+    // Return raw array for public consumption (frontend expects an array)
+    return res.json(data);
   } catch (err) {
     console.error('[Backend] GET /api/blogs - Error:', err);
-    res.status(500).json({ error: 'Failed to fetch blogs' });
+    return sendServerError(res, 'Failed to fetch blogs');
   }
 };
 
@@ -72,48 +74,48 @@ export const getPublicBlogBySlug = async (req, res) => {
       published: true
     });
     if (!blog) return res.status(404).json({ error: 'Blog not found' });
-    res.json(blog);
+    return res.json(blog);
   } catch (err) {
     console.error('[Backend] GET /api/blogs/:slug - Error:', err);
-    res.status(500).json({ error: 'Failed to fetch blog' });
+    return sendServerError(res, 'Failed to fetch blog');
   }
 };
 
 export const getAllBlogs = async (req, res) => {
   try {
     const data = await Blog.find().sort({ date: -1 });
-    res.json(data);
+    return sendSuccess(res, data, 'Blogs retrieved successfully');
   } catch (err) {
     console.error('[Backend] GET /api/admin/blogs - Error:', err);
-    res.status(500).json({ error: 'Failed to fetch blogs' });
+    return sendServerError(res, 'Failed to fetch blogs');
   }
 };
 
 export const getBlogById = async (req, res) => {
   try {
     const blog = await Blog.findById(req.params.id);
-    if (!blog) return res.status(404).json({ error: 'Blog not found' });
-    res.json(blog);
+    if (!blog) return sendNotFound(res, 'Blog not found');
+    return sendSuccess(res, blog, 'Blog retrieved successfully');
   } catch (err) {
     console.error('[Backend] GET /api/admin/blogs/:id - Error:', err);
-    res.status(500).json({ error: 'Failed to fetch blog', details: err.message });
+    return sendServerError(res, 'Failed to fetch blog', err.message);
   }
 };
 
 export const createBlog = async (req, res) => {
   try {
     const created = await Blog.create(await normalizeBlogPayload(req.body));
-    res.status(201).json(created);
+    return sendSuccess(res, created, 'Blog created successfully', 201);
   } catch (err) {
     console.error('[Backend] POST /api/admin/blogs - Error:', err);
-    res.status(500).json({ error: 'Failed to create blog', details: err.message });
+    return sendServerError(res, 'Failed to create blog', err.message);
   }
 };
 
 export const updateBlog = async (req, res) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.status(400).json({ error: 'Invalid blog id' });
+      return sendValidationError(res, 'Invalid blog ID');
     }
 
     const update = await normalizeBlogPayload(req.body, req.params.id);
@@ -122,21 +124,21 @@ export const updateBlog = async (req, res) => {
       runValidators: true
     });
 
-    if (!updated) return res.status(404).json({ error: 'Blog not found' });
-    res.json(updated);
+    if (!updated) return sendNotFound(res, 'Blog not found');
+    return sendSuccess(res, updated, 'Blog updated successfully');
   } catch (err) {
     console.error('[Backend] PUT /api/admin/blogs/:id - Error:', err);
-    res.status(500).json({ error: 'Failed to update blog', details: err.message });
+    return sendServerError(res, 'Failed to update blog', err.message);
   }
 };
 
 export const deleteBlog = async (req, res) => {
   try {
     const deleted = await Blog.findByIdAndDelete(req.params.id);
-    if (!deleted) return res.status(404).json({ error: 'Blog not found' });
-    res.json({ success: true });
+    if (!deleted) return sendNotFound(res, 'Blog not found');
+    return sendSuccess(res, null, 'Blog deleted successfully');
   } catch (err) {
     console.error('[Backend] DELETE /api/admin/blogs/:id - Error:', err);
-    res.status(500).json({ error: 'Failed to delete blog', details: err.message });
+    return sendServerError(res, 'Failed to delete blog', err.message);
   }
 };

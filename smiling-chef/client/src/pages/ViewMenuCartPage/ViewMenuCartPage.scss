@@ -176,6 +176,58 @@
   }
 }
 
+@media (max-width: 639px) {
+  .vmc-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 1rem 0.75rem;
+  }
+
+  .vmc-row__item {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .vmc-row__img-wrap {
+    width: 44px;
+    height: 44px;
+  }
+
+  .vmc-row__name {
+    display: block;
+    font-size: 0.95rem;
+    line-height: 1.2;
+    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  .vmc-row__qty,
+  .vmc-row__price {
+    justify-content: center;
+  }
+
+  .vmc-row__price {
+    justify-content: flex-end;
+  }
+
+  .vmc-row__del {
+    display: none !important;
+  }
+
+  .vmc-list-header {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 0.75rem;
+    padding: 0 0.75rem 0.75rem;
+  }
+}
+
 // ─── Quantity Pill ────────────────────────────────────────────────────────────
 .vmc-qty-pill {
   display: inline-flex;

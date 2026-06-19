@@ -14,7 +14,7 @@ export default function OrderInquiryForm({ plateData, orderCategory, plateSummar
   const navigate = useNavigate();
   const today = new Date().toISOString().split('T')[0];
   const maxDateObj = new Date();
-  maxDateObj.setDate(maxDateObj.getDate() + 30);
+  maxDateObj.setDate(maxDateObj.getDate() + 7);
   const maxDate = maxDateObj.toISOString().split('T')[0];
 
   const [plate, setPlate] = useState(plateData || {});
@@ -206,9 +206,7 @@ export default function OrderInquiryForm({ plateData, orderCategory, plateSummar
     }
 
     try {
-      const token = localStorage.getItem('userToken');
       const headers = { 'Content-Type': 'application/json' };
-      if (token) headers['Authorization'] = `Bearer ${token}`;
 
       const currentPlates = Object.entries(plate).filter(([, count]) => count > 0);
       const plateSummaryText = currentPlates.map(([id, count]) => {

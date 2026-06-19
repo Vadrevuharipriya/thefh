@@ -117,8 +117,8 @@ function AdminSidebar() {
     }));
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('adminToken');
+  const handleLogout = async () => {
+    await fetch('/api/admin/logout', { method: 'POST' }).catch(() => {});
     localStorage.removeItem('adminSidebarScroll');
     navigate('/admin/login');
   };

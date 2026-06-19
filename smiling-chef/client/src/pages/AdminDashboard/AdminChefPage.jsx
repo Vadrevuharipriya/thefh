@@ -65,10 +65,8 @@ export default function AdminChefPage() {
 
     try {
       setError('');
-      const token = localStorage.getItem('adminToken');
       const res = await axios.post('/api/admin/upload', uploadData, {
         headers: {
-          Authorization: `Bearer ${token}`
         }
       });
       setForm(prev => ({ ...prev, [targetField]: res.data.url || '' }));
@@ -111,10 +109,8 @@ export default function AdminChefPage() {
     };
 
     try {
-      const token = localStorage.getItem('adminToken');
       await axios.post('/api/admin/chefs', payload, {
         headers: {
-          Authorization: `Bearer ${token}`
         }
       });
       navigate('/admin/dashboard');

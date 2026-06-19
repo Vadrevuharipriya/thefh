@@ -25,7 +25,7 @@ const ORDER_CATEGORIES = {
   'chutney-pickle': { enquiryType: 'halwai-chef-caterers', label: 'Chutney/Pickle' },
 };
 
-const PEOPLE_OPTIONS = ['25', '50', '75', '100', '150', '200', '300', '500', '1000', '2000+'];
+const PEOPLE_OPTIONS = ['10', '25', '50', '75', '100', '150', '200', '300', '500', '1000', '2000+'];
 
 const TIME_OPTIONS = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00'];
 
@@ -209,9 +209,7 @@ function EnquiryForm({ preSelectedOccasion, orderCategory: propOrderCategory, in
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('userToken');
       const headers = { 'Content-Type': 'application/json' };
-      if (token) headers['Authorization'] = `Bearer ${token}`;
 
       const endpoint = isOrderCategory ? '/api/order-inquiry' : '/api/enquiries/enquiry';
       const payload = {

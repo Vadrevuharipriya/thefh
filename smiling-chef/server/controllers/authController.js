@@ -1,9 +1,20 @@
-import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import User from '../models/User.js';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+import {
+  clearAuthCookie,
+  getTokenFromRequest,
+  issueAuthCookie,
+  signJwtToken,
+  verifyJwtToken
+} from '../utils/auth.js';
+import {
+  sendSuccess,
+  sendError,
+  sendValidationError,
+  sendUnauthorized,
+  sendServerError
+} from '../utils/responseHandler.js';
+const FRONTEND_URL = process.env.CLIENT_URL;
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 
@@ -16,23 +27,20 @@ export const adminLogin = async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({ error: 'Email and password required' });
+    return sendValidationError(res, 'Email and password required');
   }
 
   const adminEmail = process.env.ADMIN_EMAIL;
   const adminPassword = process.env.ADMIN_PASSWORD;
 
   if (email !== adminEmail || password !== adminPassword) {
-    return res.status(401).json({ error: 'Invalid credentials' });
+    return sendUnauthorized(res, 'Invalid credentials');
   }
 
-  const token = jwt.sign(
-    { email, role: 'admin' },
-    JWT_SECRET,
-    { expiresIn: '24h' }
-  );
+  const token = signJwtToken({ email, role: 'admin' });
+  issueAuthCookie(res, token);
 
-  res.json({ token });
+  return sendSuccess(res, { user: { email, role: 'admin' } }, 'Login successful', 200);
 };
 
 // ─── USER SIGNUP ─────────────────────────────────────────────
@@ -40,13 +48,13 @@ export const userSignup = async (req, res) => {
   const { name, email, password } = req.body;
 
   if (!name || !email || !password) {
-    return res.status(400).json({ error: 'Name, email and password required' });
+    return sendValidationError(res, 'Name, email and password required');
   }
 
   try {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ error: 'User already exists' });
+      return sendError(res, 'User already exists', 400);
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -56,19 +64,15 @@ export const userSignup = async (req, res) => {
       password: hashedPassword
     });
 
-    const token = jwt.sign(
-      { userId: user._id, email: user.email },
-      JWT_SECRET,
-      { expiresIn: '24h' }
-    );
+    const token = signJwtToken({ userId: user._id, email: user.email });
+    issueAuthCookie(res, token);
 
-    res.json({
-      token,
+    return sendSuccess(res, {
       user: { id: user._id, name: user.name, email: user.email }
-    });
+    }, 'User created successfully', 201);
   } catch (err) {
     console.error('[Backend] POST /api/auth/signup - Error:', err);
-    res.status(500).json({ error: 'Failed to create user' });
+    return sendServerError(res, 'Failed to create user');
   }
 };
 
@@ -77,34 +81,55 @@ export const userLogin = async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({ error: 'Email and password required' });
+    return sendValidationError(res, 'Email and password required');
   }
 
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return sendUnauthorized(res, 'Invalid credentials');
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return sendUnauthorized(res, 'Invalid credentials');
     }
 
-    const token = jwt.sign(
-      { userId: user._id, email: user.email },
-      JWT_SECRET,
-      { expiresIn: '24h' }
-    );
+    const token = signJwtToken({ userId: user._id, email: user.email });
+    issueAuthCookie(res, token);
 
-    res.json({
-      token,
+    return sendSuccess(res, {
       user: { id: user._id, name: user.name, email: user.email }
-    });
+    }, 'Login successful', 200);
   } catch (err) {
     console.error('[Backend] POST /api/auth/login - Error:', err);
-    res.status(500).json({ error: 'Login failed' });
+    return sendServerError(res, 'Login failed');
   }
+};
+
+export const getCurrentUser = (req, res) => {
+  const token = getTokenFromRequest(req);
+
+  if (!token) {
+    return sendUnauthorized(res, 'No token provided');
+  }
+
+  try {
+    const decoded = verifyJwtToken(token);
+    return sendSuccess(res, {
+      authenticated: true,
+      role: decoded.role,
+      userId: decoded.userId,
+      email: decoded.email
+    }, 'User authenticated');
+  } catch {
+    return sendUnauthorized(res, 'Invalid or expired token');
+  }
+};
+
+export const logout = (req, res) => {
+  clearAuthCookie(res);
+  return sendSuccess(res, null, 'Logged out successfully', 200);
 };
 
 // ─── GOOGLE OAUTH ─────────────────────────────────────────────
@@ -148,13 +173,10 @@ export const googleCallback = async (req, res) => {
       user = newUser;
     }
 
-    const token = jwt.sign(
-      { userId: user._id, email: user.email },
-      JWT_SECRET,
-      { expiresIn: '24h' }
-    );
+    const token = signJwtToken({ userId: user._id, email: user.email });
+    issueAuthCookie(res, token);
 
-    res.redirect(`${FRONTEND_URL}/auth/google/callback?token=${token}&userId=${user._id}&name=${encodeURIComponent(name)}&email=${email}`);
+    res.redirect(`${FRONTEND_URL}/auth/google/callback?userId=${user._id}&name=${encodeURIComponent(name)}&email=${email}`);
   } catch (error) {
     console.error('Google OAuth callback error:', error);
     res.redirect(`${FRONTEND_URL}/`);

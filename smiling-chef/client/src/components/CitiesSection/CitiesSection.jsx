@@ -97,9 +97,9 @@ export default function CitiesSection() {
         )}
 
         <div className="text-center mt-8">
-          <Link to="/" className="btn-outline inline-block border-white/20 text-white hover:bg-white hover:text-brand-red cities-section__view-btn">
+          {/* <Link to="/" className="btn-outline inline-block border-white/20 text-white hover:bg-white hover:text-brand-red cities-section__view-btn">
             View All Cities
-          </Link>
+          </Link> */}
         </div>
       </div>
     </section>
