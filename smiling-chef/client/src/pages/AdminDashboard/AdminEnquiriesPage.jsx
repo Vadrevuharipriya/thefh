@@ -20,12 +20,9 @@ export default function AdminEnquiriesPage() {
   const fetchInquiries = useCallback(async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('adminToken');
       console.log('[AdminEnquiriesPage] Fetching all enquiries');
-      console.log('[AdminEnquiriesPage] Token present:', !!token);
       const res = await fetch('/api/enquiries', {
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
@@ -46,12 +43,9 @@ export default function AdminEnquiriesPage() {
 
   const fetchCounts = useCallback(async () => {
     try {
-      const token = localStorage.getItem('adminToken');
       console.log('[AdminEnquiriesPage] Fetching inquiry counts');
-      console.log('[AdminEnquiriesPage] Token present:', !!token);
       const res = await fetch('/api/inquiries/counts', {
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
@@ -76,11 +70,9 @@ export default function AdminEnquiriesPage() {
 const handleDelete = async (id) => {
     if (!confirm('Are you sure you want to delete this inquiry?')) return;
     try {
-      const token = localStorage.getItem('adminToken');
       const res = await fetch(`/api/admin/enquiries/${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
@@ -98,12 +90,10 @@ const handleDelete = async (id) => {
   const handleStatusUpdate = async (id, status) => {
     setUpdateStatusLoading(true);
     try {
-      const token = localStorage.getItem('adminToken');
       const res = await fetch(`/api/admin/enquiries/${id}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ status })
       });

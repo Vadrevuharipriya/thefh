@@ -40,17 +40,14 @@ export default function AdminMealsFormPage() {
     setLoading(true);
     setError('');
     try {
-      const token = localStorage.getItem('adminToken');
       const payload = { ...form };
       if (id) {
         await axios.put(`/api/admin/meals/${id}`, payload, {
-          headers: { Authorization: `Bearer ${token}` }
         });
       } else {
         // New meals from this page are categories by default
         payload.isCategory = true;
         await axios.post('/api/admin/meals', payload, {
-          headers: { Authorization: `Bearer ${token}` }
         });
       }
       navigate('/admin/meals');

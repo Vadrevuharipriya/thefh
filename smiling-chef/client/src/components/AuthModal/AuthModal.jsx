@@ -63,7 +63,6 @@ export default function AuthModal() {
         });
         const data = await response.json();
         if (response.ok) {
-          login(data.user, data.token);
           closeAuthModal();
           navigate('/account');
         } else {
@@ -88,7 +87,6 @@ export default function AuthModal() {
         });
         const data = await response.json();
         if (response.ok) {
-          login(data.user, data.token);
           closeAuthModal();
           navigate('/account');
         } else {

@@ -102,12 +102,10 @@ export default function AdminJobWorkerProfilePage() {
 
     setLoading(true);
     setError('');
-    const token = localStorage.getItem('adminToken');
     let found = null;
 
     try {
       const res = await axios.get(`/api/admin/chefs/${workerId}`, {
-        headers: { Authorization: `Bearer ${token}` },
       });
       found = normalizeWorker(res.data, 'local');
     } catch (err) {
@@ -117,7 +115,6 @@ export default function AdminJobWorkerProfilePage() {
     if (!found) {
       try {
         const firebaseRes = await axios.get('/api/admin/firebase/chefs', {
-          headers: { Authorization: `Bearer ${token}` },
         });
         const firebaseChefs = firebaseRes.data || [];
         const raw = firebaseChefs.find((item) => 
@@ -196,15 +193,10 @@ export default function AdminJobWorkerProfilePage() {
     }
 
     try {
-      const token = localStorage.getItem('adminToken');
-      if (!token) {
-        setError('You must be logged in to upload files.');
-        return;
-      }
+
       const uploadData = new FormData();
       uploadData.append('image', file);
       const res = await axios.post('/api/admin/upload', uploadData, {
-        headers: { Authorization: `Bearer ${token}` },
       });
       setFormData((prev) => ({ ...prev, image: res.data.url }));
       setImagePreview(res.data.url);
@@ -226,15 +218,10 @@ export default function AdminJobWorkerProfilePage() {
     }
 
     try {
-      const token = localStorage.getItem('adminToken');
-      if (!token) {
-        setError('You must be logged in to upload files.');
-        return;
-      }
+
       const uploadData = new FormData();
       uploadData.append('image', file);
       const res = await axios.post('/api/admin/upload', uploadData, {
-        headers: { Authorization: `Bearer ${token}` },
       });
       setFormData((prev) => ({ ...prev, [field]: res.data.url }));
       setError('');
@@ -289,7 +276,6 @@ export default function AdminJobWorkerProfilePage() {
 
   const handleSave = async () => {
     try {
-      const token = localStorage.getItem('adminToken');
       const cuisineList = Array.isArray(formData.cuisines)
         ? formData.cuisines
         : formData.cuisines
@@ -332,12 +318,10 @@ export default function AdminJobWorkerProfilePage() {
           slug: `${buildSlug(formData.name)}-${Date.now()}`,
           bio: '',
         }, {
-          headers: { Authorization: `Bearer ${token}` },
         });
         navigate(`/admin/order-inquiry/manage-job-worker/${res.data._id}`);
       } else {
         await axios.put(`/api/admin/chefs/${workerId}`, body, {
-          headers: { Authorization: `Bearer ${token}` },
         });
         setError('Saved successfully.');
       }

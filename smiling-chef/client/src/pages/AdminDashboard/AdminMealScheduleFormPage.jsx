@@ -61,15 +61,12 @@ export default function AdminMealScheduleFormPage() {
     setLoading(true);
     setError('');
     try {
-      const token = localStorage.getItem('adminToken');
       const payload = { ...form, meal: mealId };
       if (scheduleId) {
         await axios.put(`/api/admin/schedules/${scheduleId}`, payload, {
-          headers: { Authorization: `Bearer ${token}` }
         });
       } else {
         await axios.post('/api/admin/schedules', payload, {
-          headers: { Authorization: `Bearer ${token}` }
         });
       }
       navigate(`/admin/meals/${mealId}/schedule`);

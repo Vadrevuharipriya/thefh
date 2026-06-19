@@ -5,12 +5,11 @@ import AdminSidebar from '../../components/AdminSidebar/AdminSidebar';
 import { Plus, Edit, Trash2, Search, Trash } from 'lucide-react';
 import './AdminProductsPage.scss';
 
+const ALLOWED_PRODUCT_CATEGORIES = ['bhaji', 'pickle', 'chutney'];
 const CATEGORIES = [
   { id: 'bhaji', label: 'Bhaji' },
   { id: 'pickle', label: 'Pickle / Achhar' },
-  { id: 'chutney', label: 'Chutney' },
-  { id: 'menu_item', label: 'Menu Items' },
-  { id: 'other', label: 'Other' },
+  { id: 'chutney', label: 'Chutney' }
 ];
 
 export default function AdminProductsPage() {
@@ -40,7 +39,7 @@ export default function AdminProductsPage() {
     const queryCategory = params.get('category');
     const queryCuisine = params.get('cuisineId');
 
-    if (queryCategory) {
+    if (queryCategory && ALLOWED_PRODUCT_CATEGORIES.includes(queryCategory)) {
       setActiveCategory(queryCategory);
       setFormData((prev) => ({ ...prev, category: queryCategory }));
       if (queryCuisine) {
@@ -57,7 +56,6 @@ export default function AdminProductsPage() {
     try {
       const res = await fetch('/api/admin/products', {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('adminToken')}`
         }
       });
       const data = await res.json().catch(() => null);
@@ -83,13 +81,16 @@ export default function AdminProductsPage() {
     }
   };
 
-  const filteredProducts = products.filter(
-    (p) =>
-      String(p.category || '').toLowerCase() === String(activeCategory || '').toLowerCase() &&
+  const filteredProducts = products.filter((p) => {
+    const category = String(p.category || '').toLowerCase();
+    return (
+      ALLOWED_PRODUCT_CATEGORIES.includes(category) &&
+      category === String(activeCategory || '').toLowerCase() &&
       (!search.trim() ||
        p.name.toLowerCase().includes(search.toLowerCase()) ||
-       p.category.toLowerCase().includes(search.toLowerCase()))
-  );
+       category.includes(search.toLowerCase()))
+    );
+  });
 
   const getCategoryLabel = (cat) => {
     const catObj = CATEGORIES.find(c => c.id === cat);
@@ -102,7 +103,6 @@ export default function AdminProductsPage() {
       await fetch(`/api/admin/products/${id}`, {
         method: 'DELETE',
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('adminToken')}`
         }
       });
       fetchProducts();
@@ -176,7 +176,6 @@ export default function AdminProductsPage() {
         method,
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('adminToken')}`
         },
         body: JSON.stringify(payload)
       });
@@ -227,10 +226,8 @@ export default function AdminProductsPage() {
     uploadData.append('image', file);
 
     try {
-      const token = localStorage.getItem('adminToken');
       const res = await axios.post('/api/admin/upload', uploadData, {
         headers: {
-          Authorization: `Bearer ${token}`
         }
       });
       setFormData({ ...formData, image: res.data.url });
@@ -369,46 +366,9 @@ export default function AdminProductsPage() {
                     <option value="pickle">Pickle</option>
                     <option value="bhaji">Bhaji</option>
                     <option value="chutney">Chutney</option>
-                    <option value="menu_item">Menu Item</option>
-                    <option value="other">Other</option>
                   </select>
                 </div>
               </div>
-              {formData.category === 'menu_item' && (
-                <>
-                  <div className="form-group">
-                    <label>Cuisine</label>
-                    <select
-                      value={formData.cuisine}
-                      onChange={(e) => setFormData({ ...formData, cuisine: e.target.value })}
-                      required
-                    >
-                      <option value="">Select Cuisine</option>
-                      {cuisines.map((cuisine) => (
-                        <option key={cuisine._id} value={cuisine._id}>{cuisine.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="form-group">
-                    <label>Menu Category *</label>
-                    <select
-                      value={formData.menuCategory}
-                      onChange={(e) => setFormData({ ...formData, menuCategory: e.target.value })}
-                      required
-                    >
-                      <option value="">-- Select Menu Category --</option>
-                      <option value="breakfast">Breakfast</option>
-                      <option value="main">Main Course</option>
-                      <option value="starters">Starters</option>
-                      <option value="bbq">BBQ & Live Grills</option>
-                      <option value="desserts">Sweets & Desserts</option>
-                      <option value="soups">Soups & Beverages</option>
-                      <option value="breads">Breads & Rice</option>
-                      <option value="state-special">Traditional State Food</option>
-                    </select>
-                  </div>
-                </>
-              )}
               <div className="form-group">
                 <label>Description</label>
                 <textarea

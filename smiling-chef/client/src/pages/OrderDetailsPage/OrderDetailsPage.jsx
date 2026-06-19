@@ -3,8 +3,6 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, MapPin, CreditCard, ShoppingBag, Clock } from 'lucide-react';
 import './OrderDetailsPage.scss';
 
-const getAuthToken = () => localStorage.getItem('userToken') || localStorage.getItem('token');
-
 const parseAmount = (value) => {
   if (value == null || value === '') return 0;
   if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
@@ -86,12 +84,7 @@ export default function OrderDetailsPage() {
       setError(null);
 
       try {
-        const token = getAuthToken();
-        const response = await fetch('/api/account/orders', {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
+        const response = await fetch('/api/account/orders');
 
         const data = await response.json();
         const found = Array.isArray(data)

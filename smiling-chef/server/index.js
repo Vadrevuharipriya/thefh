@@ -1,10 +1,11 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import { connectDB } from './db.js';
 
 import authRoutes from './routes/authRoutes.js';
-import { adminLogin } from './controllers/authController.js';
+import { adminLogin, logout as adminLogout } from './controllers/authController.js';
 import servicesRoutes from './routes/servicesRoutes.js';
 import occasionsRoutes from './routes/occasionsRoutes.js';
 import mealsRoutes from './routes/mealsRoutes.js';
@@ -29,14 +30,22 @@ import websitePagesRoutes from './routes/websitePagesRoutes.js';
 import productsRoutes from './routes/productsRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 import adminFirebaseRoutes from './routes/adminFirebaseRoutes.js';
+import { errorHandler } from './middleware/errorHandler.js';
 
 // ─── APP INIT ───────────────────────────────────────────────
 const app = express();
 const PORT = process.env.PORT || 5000;
+const CLIENT_URL = process.env.CLIENT_URL;
 
-  // ─── MIDDLEWARE ─────────────────────────────────────────────
-  app.use(cors());
-  app.use(express.json({ limit: '20mb' }));
+if (!CLIENT_URL) {
+  console.error('CLIENT_URL environment variable is required');
+  process.exit(1);
+}
+
+// ─── MIDDLEWARE ─────────────────────────────────────────────
+app.use(cors({ origin: CLIENT_URL, credentials: true }));
+app.use(cookieParser());
+app.use(express.json({ limit: '20mb' }));
   app.use(express.urlencoded({ extended: true, limit: '20mb' }));
   
 
@@ -55,6 +64,7 @@ app.get('/api/health', (req, res) => {
 
 // ─── ADMIN LOGIN ─────────────────────────────────────────────
 app.post('/api/admin/login', adminLogin);
+app.post('/api/admin/logout', adminLogout);
 
 // ─── MOUNT ROUTES ───────────────────────────────────────────
 
@@ -98,6 +108,9 @@ app.use('/api/admin/website-pages', websitePagesRoutes);
 
 // Firebase-backed admin endpoints
 app.use('/api/admin/firebase', adminFirebaseRoutes);
+
+// Global error handler
+app.use(errorHandler);
 
 // ─── SERVER START ───────────────────────────────────────────
 app.listen(PORT, () => {

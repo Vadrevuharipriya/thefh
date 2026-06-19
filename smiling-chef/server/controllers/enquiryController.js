@@ -1,6 +1,6 @@
 import Enquiry from '../models/Enquiry.js';
 import Order from '../models/Order.js';
-import jwt from 'jsonwebtoken';
+import { getTokenFromRequest, verifyJwtToken } from '../utils/auth.js';
 import { generateSecureOTP, validateOTP } from '../utils/otpUtils.js';
 // import { sendOrderSummaryOtp, sendOrderNotification, normalizeWhatsAppPhone } from '../services/whatsappService.js';
 
@@ -61,10 +61,10 @@ export const submitEnquiry = async (req, res) => {
     });
     console.log('[Backend] POST /api/enquiry - Created enquiry:', created._id, 'orderCategory:', detectedOrderCategory, 'enquiryType:', detectedEnquiryType);
 
-    const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = getTokenFromRequest(req);
+    if (token) {
       try {
-        const decoded = jwt.verify(authHeader.split(' ')[1], process.env.JWT_SECRET);
+        const decoded = verifyJwtToken(token);
         if (decoded.userId) {
           const orderNumber = Date.now().toString().slice(-6) + Math.floor(Math.random() * 100).toString().padStart(2, '0');
           await Order.create({

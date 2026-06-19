@@ -25,19 +25,13 @@ export default function AdminBlogsPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem('adminToken');
-    if (!token) {
-      navigate('/admin/login', { replace: true });
-      return;
-    }
+
     fetchBlogs();
   }, [navigate]);
 
   const fetchBlogs = async () => {
     try {
-      const token = localStorage.getItem('adminToken');
       const res = await axios.get('/api/admin/blogs', {
-        headers: { Authorization: `Bearer ${token}` }
       });
       setBlogs(res.data);
     } catch (err) {
@@ -59,7 +53,6 @@ export default function AdminBlogsPage() {
       await fetch(`/api/admin/blogs/${id}`, {
         method: 'DELETE',
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('adminToken')}`
         }
       });
       fetchBlogs();
@@ -80,7 +73,6 @@ export default function AdminBlogsPage() {
         method,
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('adminToken')}`
         },
         body: JSON.stringify(formData)
       });
@@ -150,10 +142,8 @@ setShowModal(false);
     uploadData.append('image', file);
 
     try {
-      const token = localStorage.getItem('adminToken');
       const res = await axios.post('/api/admin/upload', uploadData, {
         headers: {
-          Authorization: `Bearer ${token}`
         }
       });
       setFormData({ ...formData, image: res.data.url });

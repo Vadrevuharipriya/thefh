@@ -24,9 +24,7 @@ export default function AdminLocationsPage() {
 
   const fetchLocations = async () => {
     try {
-      const token = localStorage.getItem('adminToken');
       const res = await axios.get('/api/admin/locations', {
-        headers: { Authorization: `Bearer ${token}` }
       });
       setLocations(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
@@ -66,7 +64,6 @@ export default function AdminLocationsPage() {
       await fetch(`/api/admin/locations/${id}`, {
         method: 'DELETE',
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('adminToken')}`
         }
       });
       fetchLocations();
@@ -83,7 +80,6 @@ export default function AdminLocationsPage() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('adminToken')}`
         },
         body: JSON.stringify({ displayStatus: nextStatus })
       });
@@ -111,7 +107,6 @@ export default function AdminLocationsPage() {
         method,
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('adminToken')}`
         },
         body: JSON.stringify(formData)
       });
@@ -174,10 +169,8 @@ export default function AdminLocationsPage() {
     uploadData.append('image', file);
 
     try {
-      const token = localStorage.getItem('adminToken');
       const res = await axios.post('/api/upload', uploadData, {
         headers: {
-          Authorization: `Bearer ${token}`
         }
       });
       setFormData({ ...formData, image: res.data.url });

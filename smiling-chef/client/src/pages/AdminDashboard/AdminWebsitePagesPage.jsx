@@ -38,9 +38,7 @@ export default function AdminWebsitePagesPage() {
 
   const fetchPages = async () => {
     try {
-      const token = localStorage.getItem('adminToken');
       const res = await axios.get('/api/admin/website-pages', {
-        headers: { Authorization: `Bearer ${token}` }
       });
       setPages(res.data);
     } catch (err) {
@@ -89,7 +87,6 @@ export default function AdminWebsitePagesPage() {
         method,
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('adminToken')}`
         },
         body: JSON.stringify(formData)
       });
@@ -157,10 +154,8 @@ export default function AdminWebsitePagesPage() {
     uploadData.append('image', file);
 
     try {
-      const token = localStorage.getItem('adminToken');
       const res = await axios.post('/api/admin/upload', uploadData, {
         headers: {
-          Authorization: `Bearer ${token}`
         }
       });
       setFormData({ ...formData, featuredImage: res.data.url });
@@ -181,7 +176,6 @@ export default function AdminWebsitePagesPage() {
       await fetch(`/api/admin/website-pages/${id}`, {
         method: 'DELETE',
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('adminToken')}`
         }
       });
       fetchPages();

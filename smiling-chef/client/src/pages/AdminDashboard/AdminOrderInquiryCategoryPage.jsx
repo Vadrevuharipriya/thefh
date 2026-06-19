@@ -26,16 +26,11 @@ export default function AdminOrderInquiryCategoryPage({ category }) {
   const fetchInquiries = useCallback(async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('adminToken');
       console.log('[AdminOrderInquiryCategoryPage] Fetching order inquiries for category:', category);
-      console.log('[AdminOrderInquiryCategoryPage] Token present:', !!token);
       console.log(
-                    "TOKEN:",
-                    localStorage.getItem("adminToken")
                   );
       const res = await fetch(`/api/inquiries/category/${category}`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
@@ -61,11 +56,9 @@ export default function AdminOrderInquiryCategoryPage({ category }) {
   const handleDelete = async (id) => {
     if (!confirm('Are you sure you want to delete this inquiry?')) return;
     try {
-      const token = localStorage.getItem('adminToken');
       const res = await fetch(`/api/order-inquiry/${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
@@ -83,12 +76,10 @@ export default function AdminOrderInquiryCategoryPage({ category }) {
   const handleStatusUpdate = async (id, status) => {
     setUpdateStatusLoading(true);
     try {
-      const token = localStorage.getItem('adminToken');
       const res = await fetch(`/api/order-inquiry/${id}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ status })
       });

@@ -19,14 +19,8 @@ export default function AdminOccasionPage() {
     setLoading(true);
     setError('');
     try {
-      const token = localStorage.getItem('adminToken');
-      if (!token) {
-        setError('Not authenticated. Please login again.');
-        setLoading(false);
-        return;
-      }
+
       const res = await axios.get('/api/admin/occasions', {
-        headers: { Authorization: `Bearer ${token}` }
       });
       setOccasions(res.data);
     } catch (err) {
@@ -46,7 +40,6 @@ export default function AdminOccasionPage() {
 
      try {
        await axios.put(`/api/admin/occasions/${id}`, { displayStatus: newDbStatus }, {
-         headers: { Authorization: `Bearer ${localStorage.getItem('adminToken')}` }
        });
        setOccasions(occasions.map(o =>
          o._id === id ? { ...o, displayStatus: newDbStatus } : o
@@ -61,7 +54,6 @@ export default function AdminOccasionPage() {
      if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
      try {
        await axios.delete(`/api/admin/occasions/${id}`, {
-         headers: { Authorization: `Bearer ${localStorage.getItem('adminToken')}` }
        });
        setOccasions(occasions.filter(o => o._id !== id));
        alert('Deleted successfully');
@@ -87,11 +79,7 @@ export default function AdminOccasionPage() {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem('adminToken');
-    if (!token) {
-      navigate('/admin/login', { replace: true });
-      return;
-    }
+
     fetchOccasions();
   }, [navigate]);
 

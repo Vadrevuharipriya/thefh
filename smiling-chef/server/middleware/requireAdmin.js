@@ -1,20 +1,23 @@
-import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+import { getTokenFromRequest, verifyJwtToken } from '../utils/auth.js';
+import { sendUnauthorized, sendForbidden } from '../utils/responseHandler.js';
 
 const requireAdmin = (req, res, next) => {
-  const authHeader = req.headers.authorization;
+  const token = getTokenFromRequest(req);
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Unauthorized - No token provided' });
+  if (!token) {
+    return sendUnauthorized(res, 'No token provided');
   }
 
   try {
-    const decoded = jwt.verify(authHeader.split(' ')[1], JWT_SECRET);
+    const decoded = verifyJwtToken(token);
+    if (decoded.role !== 'admin') {
+      return sendForbidden(res, 'Admin access required');
+    }
+
     req.admin = decoded;
     next();
   } catch {
-    return res.status(401).json({ error: 'Unauthorized - Invalid token' });
+    return sendUnauthorized(res, 'Invalid or expired token');
   }
 };
 

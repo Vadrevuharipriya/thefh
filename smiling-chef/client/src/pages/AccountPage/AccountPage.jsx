@@ -55,8 +55,6 @@ export default function AccountPage() {
   const navigate = useNavigate();
   const { user: authUser, logout: authLogout } = useAuth();
 
-  const getAuthToken = () => localStorage.getItem('userToken') || localStorage.getItem('token');
-
   useEffect(() => {
     fetchAccountData();
   }, []);
@@ -64,9 +62,6 @@ export default function AccountPage() {
   const fetchAccountData = async () => {
     setLoading(true);
     try {
-      const token = getAuthToken();
-      const headers = { Authorization: `Bearer ${token}` };
-
       const [
         profileRes,
         addressesRes,
@@ -75,12 +70,12 @@ export default function AccountPage() {
         referralRes,
         paymentsRes
       ] = await Promise.allSettled([
-        fetch('/api/account/profile', { headers }),
-        fetch('/api/account/addresses', { headers }),
-        fetch('/api/account/orders', { headers }),
-        fetch('/api/account/loyalty', { headers }),
-        fetch('/api/account/referral', { headers }),
-        fetch('/api/account/payments', { headers })
+        fetch('/api/account/profile'),
+        fetch('/api/account/addresses'),
+        fetch('/api/account/orders'),
+        fetch('/api/account/loyalty'),
+        fetch('/api/account/referral'),
+        fetch('/api/account/payments')
       ]);
 
       const safeJson = async (promiseResult) => {
@@ -125,12 +120,10 @@ export default function AccountPage() {
   const handleAddPaymentMethod = async (e) => {
     e.preventDefault();
     try {
-      const token = getAuthToken();
       const res = await fetch('/api/account/payments', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify(editPaymentMethod)
       });
@@ -147,12 +140,10 @@ export default function AccountPage() {
   const handleUpdatePaymentMethod = async (e) => {
     e.preventDefault();
     try {
-      const token = getAuthToken();
       const res = await fetch(`/api/account/payments/${editPaymentMethodIndex}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify(editPaymentMethod)
       });
@@ -168,10 +159,8 @@ export default function AccountPage() {
 
   const handleDeletePaymentMethod = async (index) => {
     try {
-      const token = getAuthToken();
       const res = await fetch(`/api/account/payments/${index}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
       setPaymentMethods(data);
@@ -183,12 +172,10 @@ export default function AccountPage() {
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     try {
-      const token = getAuthToken();
       const res = await fetch('/api/account/profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({ name, phone })
       });
@@ -203,12 +190,10 @@ export default function AccountPage() {
   const handleAddAddress = async (e) => {
     e.preventDefault();
     try {
-      const token = getAuthToken();
       const res = await fetch('/api/account/addresses', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify(newAddress)
       });
@@ -231,10 +216,8 @@ export default function AccountPage() {
 
   const handleDeleteAddress = async (index) => {
     try {
-      const token = getAuthToken();
       const res = await fetch(`/api/account/addresses/${index}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
       setAddresses(data);

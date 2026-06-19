@@ -35,10 +35,7 @@ export default function AdminEventsPage() {
   const fetchEvents = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('adminToken');
-      const res  = await axios.get('/api/admin/events', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res  = await axios.get('/api/admin/events');
       setEvents(res.data || []);
     } catch (err) {
       console.error('Failed to fetch events:', err);
@@ -83,10 +80,8 @@ export default function AdminEventsPage() {
   const saveOrder = async () => {
     setSavingOrder(true);
     try {
-      const token = localStorage.getItem('adminToken');
       await axios.put('/api/admin/events/reorder',
         { order: events.map((e, i) => ({ _id: e._id, displayOrder: i })) },
-        { headers: { Authorization: `Bearer ${token}` } }
       );
     } catch (err) {
       console.error('Reorder failed:', err);
@@ -101,9 +96,7 @@ export default function AdminEventsPage() {
     const idx = STATUS_OPTIONS.indexOf(cur);
     const next = STATUS_OPTIONS[(idx + 1) % STATUS_OPTIONS.length];
     try {
-      const token = localStorage.getItem('adminToken');
-      await axios.put(`/api/admin/events/${evt._id}`, { displayStatus: next }, {
-        headers: { Authorization: `Bearer ${token}` } });
+      await axios.put(`/api/admin/events/${evt._id}`, { displayStatus: next });
       setEvents(events.map(e => e._id === evt._id ? { ...e, displayStatus: next } : e));
     } catch (err) {
       console.error('Status update failed:', err);
@@ -113,9 +106,7 @@ export default function AdminEventsPage() {
   const handleDelete = async (id, name) => {
     if (!confirm(`Delete event "${name}"?`)) return;
     try {
-      const token = localStorage.getItem('adminToken');
-      await axios.delete(`/api/admin/events/${id}`, {
-        headers: { Authorization: `Bearer ${token}` } });
+      await axios.delete(`/api/admin/events/${id}`);
       fetchEvents();
     } catch (err) {
       console.error('Delete failed:', err);
@@ -139,12 +130,7 @@ export default function AdminEventsPage() {
     uploadData.append('image', file);
 
     try {
-      const token = localStorage.getItem('adminToken');
-      const res = await axios.post('/api/admin/upload', uploadData, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+      const res = await axios.post('/api/admin/upload', uploadData);
       setFormData({ ...formData, image: res.data.url });
       setImagePreview(res.data.url);
     } catch (err) {
@@ -188,13 +174,10 @@ export default function AdminEventsPage() {
     e.preventDefault();
     try {
       const { ...body } = formData;
-      const token = localStorage.getItem('adminToken');
       if (editingEvent) {
-        await axios.put(`/api/admin/events/${editingEvent._id}`, body, {
-          headers: { Authorization: `Bearer ${token}` } });
+        await axios.put(`/api/admin/events/${editingEvent._id}`, body);
       } else {
-        await axios.post('/api/admin/events', body, {
-          headers: { Authorization: `Bearer ${token}` } });
+        await axios.post('/api/admin/events', body);
       }
       setShowForm(false);
       setEditingEvent(null);

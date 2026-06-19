@@ -24,12 +24,10 @@ export default function AdminJobWorkerRatePage() {
   const fetchRates = useCallback(async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('adminToken');
       const params = new URLSearchParams();
       if (search) params.set('search', search);
       if (statusFilter) params.set('status', statusFilter);
       const res = await axios.get(`/api/admin/job-worker-rates?${params}`, {
-        headers: { Authorization: `Bearer ${token}` },
       });
       setRates(res.data || []);
     } catch (err) {
@@ -69,7 +67,6 @@ export default function AdminJobWorkerRatePage() {
   const handleSave = async () => {
     setError('');
     try {
-      const token = localStorage.getItem('adminToken');
       const body = {
         title: formData.title,
         rate: Number(formData.rate) || 0,
@@ -79,12 +76,10 @@ export default function AdminJobWorkerRatePage() {
       let res;
       if (editingRate) {
         res = await axios.put(`/api/admin/job-worker-rates/${editingRate._id}`, body, {
-          headers: { Authorization: `Bearer ${token}` },
         });
         setRates(rates.map(r => (r._id === editingRate._id ? res.data : r)));
       } else {
         res = await axios.post(`/api/admin/job-worker-rates`, body, {
-          headers: { Authorization: `Bearer ${token}` },
         });
         fetchRates();
       }
@@ -100,9 +95,7 @@ export default function AdminJobWorkerRatePage() {
   const handleDelete = async (rate) => {
     if (!confirm(`Delete "${rate.title}"?`)) return;
     try {
-      const token = localStorage.getItem('adminToken');
       await axios.delete(`/api/admin/job-worker-rates/${rate._id}`, {
-        headers: { Authorization: `Bearer ${token}` },
       });
       setRates(rates.filter(r => r._id !== rate._id));
     } catch (err) {
@@ -122,7 +115,6 @@ export default function AdminJobWorkerRatePage() {
       .put(
         `/api/admin/job-worker-rates/${rate._id}`,
         { displayStatus: next },
-        { headers: { Authorization: `Bearer ${localStorage.getItem('adminToken')}` } }
       )
       .catch(console.error);
   };

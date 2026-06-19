@@ -17,6 +17,13 @@ function formatDate(dateStr) {
   return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
+function extractResponseData(response) {
+  const payload = response?.data;
+  if (Array.isArray(payload)) return payload;
+  if (payload && typeof payload === 'object' && Array.isArray(payload.data)) return payload.data;
+  return payload;
+}
+
 export default function AdminBlogPage() {
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -42,13 +49,13 @@ export default function AdminBlogPage() {
 
   const fetchBlogs = useCallback(async () => {
     try {
-      const token = localStorage.getItem('adminToken');
       const res = await axios.get('/api/admin/blogs', {
-        headers: { Authorization: `Bearer ${token}` }
       });
-      setBlogs(res.data);
+      const data = extractResponseData(res);
+      setBlogs(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Failed to fetch blogs:', err);
+      setBlogs([]);
     } finally {
       setLoading(false);
     }
@@ -115,10 +122,8 @@ export default function AdminBlogPage() {
     uploadData.append('image', file);
 
     try {
-      const token = localStorage.getItem('adminToken');
       const res = await axios.post('/api/admin/upload', uploadData, {
         headers: {
-          Authorization: `Bearer ${token}`
         }
       });
       setFormData({ ...formData, image: res.data.url });
@@ -162,11 +167,6 @@ export default function AdminBlogPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const token = localStorage.getItem('adminToken');
-    if (!token) {
-      setError('Please log in again to manage blogs.');
-      return;
-    }
 
     setSaving(true);
     setError('');
@@ -180,13 +180,11 @@ export default function AdminBlogPage() {
 
       const response = editingBlog
         ? await axios.put(`/api/admin/blogs/${editingBlog._id}`, body, {
-            headers: { Authorization: `Bearer ${token}` }
           })
         : await axios.post('/api/admin/blogs', body, {
-            headers: { Authorization: `Bearer ${token}` }
           });
 
-      const savedBlog = response.data;
+      const savedBlog = extractResponseData(response);
       setBlogs((prev) => editingBlog
         ? prev.map((blog) => (blog._id === savedBlog._id ? savedBlog : blog))
         : [savedBlog, ...prev]);
@@ -206,15 +204,9 @@ export default function AdminBlogPage() {
   const handleDelete = async (id) => {
     if (!confirm('Are you sure you want to delete this blog post?')) return;
 
-    const token = localStorage.getItem('adminToken');
-    if (!token) {
-      setError('Please log in again to manage blogs.');
-      return;
-    }
 
     try {
       await axios.delete(`/api/admin/blogs/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
       });
       setBlogs((prev) => prev.filter((blog) => blog._id !== id));
       notifyBlogChanged();

@@ -25,12 +25,10 @@ export default function AdminReferralCodePage() {
   const fetchReferrals = useCallback(async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('adminToken');
       const params = new URLSearchParams();
       if (search) params.set('search', search);
       if (statusFilter) params.set('status', statusFilter);
       const res = await axios.get(`/api/admin/referral-codes?${params}`, {
-        headers: { Authorization: `Bearer ${token}` },
       });
       setReferrals(res.data || []);
     } catch (err) {
@@ -72,7 +70,6 @@ export default function AdminReferralCodePage() {
   const handleSave = async () => {
     setError('');
     try {
-      const token = localStorage.getItem('adminToken');
       const body = {
         user: formData.user,
         referralCode: formData.referralCode,
@@ -83,12 +80,10 @@ export default function AdminReferralCodePage() {
       let res;
       if (editingReferral) {
         res = await axios.put(`/api/admin/referral-codes/${editingReferral._id}`, body, {
-          headers: { Authorization: `Bearer ${token}` },
         });
         setReferrals(referrals.map(r => (r._id === editingReferral._id ? res.data : r)));
       } else {
         res = await axios.post(`/api/admin/referral-codes`, body, {
-          headers: { Authorization: `Bearer ${token}` },
         });
         fetchReferrals();
       }
@@ -104,9 +99,7 @@ export default function AdminReferralCodePage() {
   const handleDelete = async (referral) => {
     if (!confirm(`Delete referral code "${referral.referralCode}"?`)) return;
     try {
-      const token = localStorage.getItem('adminToken');
       await axios.delete(`/api/admin/referral-codes/${referral._id}`, {
-        headers: { Authorization: `Bearer ${token}` },
       });
       setReferrals(referrals.filter(r => r._id !== referral._id));
     } catch (err) {
@@ -126,7 +119,6 @@ export default function AdminReferralCodePage() {
       .put(
         `/api/admin/referral-codes/${referral._id}`,
         { displayStatus: next },
-        { headers: { Authorization: `Bearer ${localStorage.getItem('adminToken')}` } }
       )
       .catch(console.error);
   };

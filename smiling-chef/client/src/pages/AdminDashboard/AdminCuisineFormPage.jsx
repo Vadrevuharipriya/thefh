@@ -16,14 +16,9 @@ export default function AdminCuisineFormPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const token = localStorage.getItem('adminToken');
-    if (!token) {
-      navigate('/admin/login', { replace: true });
-      return;
-    }
+
     if (id) {
       axios.get(`/api/admin/cuisines/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
       })
         .then(res => {
           setForm({
@@ -45,16 +40,13 @@ export default function AdminCuisineFormPage() {
     setLoading(true);
     setError('');
     try {
-      const token = localStorage.getItem('adminToken');
       const payload = { ...form };
 
       if (id) {
         await axios.put(`/api/admin/cuisines/${id}`, payload, {
-          headers: { Authorization: `Bearer ${token}` }
         });
       } else {
         await axios.post('/api/admin/cuisines', payload, {
-          headers: { Authorization: `Bearer ${token}` }
         });
       }
       navigate('/admin/cuisine');

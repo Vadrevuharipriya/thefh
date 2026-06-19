@@ -81,17 +81,15 @@ const openAddForm = () => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append('image', file);
+    const fd = new FormData();
+    fd.append('image', file);
 
     try {
-      const token = localStorage.getItem('adminToken');
-      const res = await axios.post('/api/admin/upload', formData, {
+      const res = await axios.post('/api/admin/upload', fd, {
         headers: {
-          Authorization: `Bearer ${token}`
         }
       });
-      setFormData({ ...formData, image: res.data.url });
+      setFormData(prev => ({ ...prev, image: res.data.url }));
       setImagePreview(res.data.url);
     } catch (err) {
       console.warn('Multipart upload failed, attempting base64 fallback:', err?.response?.data || err.message || err);
@@ -102,13 +100,11 @@ const openAddForm = () => {
           r.onerror = reject;
           r.readAsDataURL(file);
         });
-        const token = localStorage.getItem('adminToken');
         const res2 = await axios.post('/api/admin/upload', { image: reader }, {
           headers: {
-            Authorization: `Bearer ${token}`
           }
         });
-        setFormData({ ...formData, image: res2.data.url });
+        setFormData(prev => ({ ...prev, image: res2.data.url }));
         setImagePreview(res2.data.url);
       } catch (err2) {
         console.error('Upload failed:', err2);
@@ -124,12 +120,22 @@ const openAddForm = () => {
 
    const handleSubmit = async (e) => {
      e.preventDefault();
+
+     // Client-side validation
+     if (!formData.name || String(formData.name).trim() === '') {
+       setError('Product name is required');
+       return;
+     }
+     if (formData.price === '' || formData.price === null || Number.isNaN(Number(formData.price))) {
+       setError('Product price is required and must be a number');
+       return;
+     }
+
      try {
-       const token = localStorage.getItem('adminToken');
        const payload = {
          ...formData,
          price: Number(formData.price),
-         category: 'menu_item', // explicitly set category to menu_item for menu items
+         category: 'menu_item', // explicitly set category to menu_item for cuisine items
          cuisine: cuisineId
        };
  
@@ -139,13 +145,12 @@ const openAddForm = () => {
            method: 'PUT',
            headers: {
              'Content-Type': 'application/json',
-             Authorization: `Bearer ${token}`
            },
            body: JSON.stringify(payload)
          });
          if (!res.ok) {
            const errorBody = await res.json().catch(() => ({}));
-           throw new Error(errorBody.error || 'Failed to update menu item');
+           throw new Error(errorBody.error || 'Failed to update item');
          }
          const updated = await res.json();
          setMenuItems((prev) =>
@@ -157,42 +162,39 @@ const openAddForm = () => {
            method: 'POST',
            headers: {
              'Content-Type': 'application/json',
-             Authorization: `Bearer ${token}`
            },
            body: JSON.stringify(payload)
          });
          if (!res.ok) {
            const errorBody = await res.json().catch(() => ({}));
-           throw new Error(errorBody.error || 'Failed to create menu item');
+           throw new Error(errorBody.error || 'Failed to create item');
          }
          const created = await res.json();
          setMenuItems((prev) => [...prev, created]);
        }
        closeAddForm();
      } catch (err) {
-       console.error('Menu item operation failed:', err);
+       console.error('Item operation failed:', err);
        setError(err.message || 'Operation failed');
      }
    };
 
   const handleDelete = async (itemId) => {
-    if (!window.confirm('Are you sure you want to delete this menu item?')) return;
+    if (!window.confirm('Are you sure you want to delete this item?')) return;
     try {
-      const token = localStorage.getItem('adminToken');
       const res = await fetch(`/api/admin/products/${itemId}`, {
         method: 'DELETE',
         headers: {
-          Authorization: `Bearer ${token}`
         }
       });
       if (!res.ok) {
         const errorBody = await res.json().catch(() => ({}));
-        throw new Error(errorBody.error || 'Failed to delete menu item');
+        throw new Error(errorBody.error || 'Failed to delete item');
       }
       setMenuItems((prev) => prev.filter((item) => item._id !== itemId));
     } catch (err) {
       console.error('Delete failed:', err);
-      setError(err.message || 'Failed to delete menu item');
+      setError(err.message || 'Failed to delete item');
     }
   };
 
@@ -206,12 +208,12 @@ const openAddForm = () => {
       <main className="admin-cuisine-menu-content">
         <div className="page-header">
           <div>
-            <h2>Menu Items: {cuisine?.name}</h2>
+            <h2>{cuisine?.name} Cuisine Items</h2>
             <p className="table-subtitle">{cuisine?.shortDescription}</p>
           </div>
           <div className="page-header-actions">
             <button type="button" className="btn btn-primary" onClick={openAddForm}>
-              + Add Menu Item
+              + Add Item
             </button>
             <Link to="/admin/cuisine" className="btn btn-back">← Back to Cuisines</Link>
           </div>
@@ -220,7 +222,7 @@ const openAddForm = () => {
         <div className="content-wrapper">
           <div className="table-card">
             <div className="table-header">
-              <h3>Menu Items List</h3>
+              <h3>Items List</h3>
               <span className="count-badge">{menuItems.length} items</span>
             </div>
 
@@ -236,15 +238,15 @@ const openAddForm = () => {
             {loading && (
               <div className="table-loading">
                 <div className="loading-spinner"></div>
-                <p>Loading menu items...</p>
+                <p>Loading items...</p>
               </div>
             )}
 
             {!loading && !error && menuItems.length === 0 && (
               <div className="table-empty">
                 <div className="table-empty-icon">📝</div>
-                <h4>No menu items found</h4>
-                <p>This cuisine does not have any menu items yet.</p>
+                <h4>No items found</h4>
+                <p>This cuisine does not have any items yet.</p>
               </div>
             )}
 
@@ -309,7 +311,7 @@ const openAddForm = () => {
         {showAddForm && (
           <div className="modal-overlay" onClick={closeAddForm}>
             <div className="modal" onClick={(e) => e.stopPropagation()}>
-              <h3>{editingItem ? `Edit Menu Item: ${editingItem.name}` : `Add Menu Item for ${cuisine?.name}`}</h3>
+              <h3>{editingItem ? `Edit Item: ${editingItem.name}` : `Add Item for ${cuisine?.name}`}</h3>
               <form onSubmit={handleSubmit} className="admin-form">
                 <div className="form-group">
                   <label>Name</label>

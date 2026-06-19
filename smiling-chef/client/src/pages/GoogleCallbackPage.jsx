@@ -9,18 +9,14 @@ export default function GoogleCallbackPage() {
   useEffect(() => {
     // Parse query parameters
     const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get('token');
     const userId = urlParams.get('userId');
     const name = urlParams.get('name');
     const email = urlParams.get('email');
 
-    if (token && userId && name && email) {
-      // Call login function from AuthContext
-      login({ id: userId, name, email }, token);
-      // Redirect to account page
+    if (userId && name && email) {
+      login({ id: userId, name, email });
       navigate('/account', { replace: true });
     } else {
-      // If missing parameters, redirect to home
       navigate('/', { replace: true });
     }
   }, [login, navigate]);

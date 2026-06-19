@@ -17,11 +17,9 @@ export default function AdminPanelUsersPage() {
     try {
       setLoading(true);
       setError('');
-      const token = localStorage.getItem('adminToken');
       console.log('[AdminPanelUsersPage] Fetching panel users');
       const res = await fetch('/api/admin/panel-users', {
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
@@ -79,11 +77,9 @@ export default function AdminPanelUsersPage() {
   const handleDelete = async (id) => {
     if (!confirm('Are you sure you want to delete this user?')) return;
     try {
-      const token = localStorage.getItem('adminToken');
       const res = await fetch(`/api/admin/panel-users/${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
@@ -101,7 +97,6 @@ export default function AdminPanelUsersPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('adminToken');
       const formData = new FormData(e.target);
       const data = {
         contactName: formData.get('contactName'),
@@ -122,7 +117,6 @@ export default function AdminPanelUsersPage() {
       const res = await fetch(url, {
         method,
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(data)

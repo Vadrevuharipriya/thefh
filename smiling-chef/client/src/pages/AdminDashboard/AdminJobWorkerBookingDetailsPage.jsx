@@ -29,9 +29,7 @@ export default function AdminJobWorkerBookingDetailsPage() {
       setLoading(true);
       setError('');
       try {
-        const token = localStorage.getItem('adminToken');
         const res = await axios.get(`/api/admin/firebase/chefs/${workerId}/bookings`, {
-          headers: { Authorization: `Bearer ${token}` },
         });
         setBookings(res.data || []);
       } catch (err) {
@@ -44,9 +42,7 @@ export default function AdminJobWorkerBookingDetailsPage() {
 
     const fetchChefName = async () => {
       try {
-        const token = localStorage.getItem('adminToken');
         const res = await axios.get(`/api/admin/chefs/${workerId}`, {
-          headers: { Authorization: `Bearer ${token}` },
         });
         setWorkerName(res.data?.name || 'Chef');
       } catch {

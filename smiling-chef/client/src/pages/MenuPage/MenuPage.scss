@@ -178,8 +178,17 @@
     font-size: 0.72rem;
   }
 
-  /* Hide cuisine tabs */
-  .menu-filters__tabs-left,
+  /* Keep the cuisine title visible only on mobile */
+  .menu-filters__tabs-left {
+    display: block !important;
+    width: 100%;
+  }
+
+  .menu-filters__cuisine-title {
+    display: flex !important;
+    margin-bottom: 0.75rem;
+  }
+
   .menu-filters__cuisine-tabs {
     display: none !important;
   }
@@ -395,6 +404,47 @@
 .menu-filters__tabs-left {
   flex: 1;
   overflow: hidden;
+}
+
+.menu-filters__cuisine-title {
+  display: none;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+}
+
+.menu-filters__cuisine-title span {
+  font-size: 0.75rem;
+  color: #777;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.menu-filters__cuisine-title-main {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.menu-filters__cuisine-emoji {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.menu-filters__cuisine-title h2 {
+  margin: 0;
+  font-family: $font-heading;
+  font-size: 1.45rem;
+  font-weight: 900;
+  color: $brand-gold;
+}
+
+.menu-filters__cuisine-count {
+  font-family: $font-body;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #888;
 }
 
 .menu-filters__cuisine-tabs {
@@ -627,7 +677,7 @@
 
   &__badge {
     background: $white;
-    color: $brand-red;
+    color: white;
     font-size: 0.7rem;
     font-weight: 900;
     width: 22px;
@@ -707,6 +757,7 @@
 
     &:hover {
       background: rgba($brand-red, 0.1);
+
       color: $brand-red;
     }
   }

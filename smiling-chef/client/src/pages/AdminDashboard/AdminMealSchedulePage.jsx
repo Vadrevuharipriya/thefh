@@ -33,7 +33,6 @@ export default function AdminMealSchedulePage() {
      const newStatus = currentStatus === 'Approved' ? 'Pending' : 'Approved';
      try {
        await axios.put(`/api/admin/schedules/${id}`, { displayStatus: newStatus }, {
-         headers: { Authorization: `Bearer ${localStorage.getItem('adminToken')}` }
        });
        setSchedules(schedules.map(s =>
          s._id === id ? { ...s, displayStatus: newStatus } : s
@@ -48,7 +47,6 @@ export default function AdminMealSchedulePage() {
      if (!confirm(`Are you sure you want to delete the "${scheduleTime}" schedule?`)) return;
      try {
        await axios.delete(`/api/admin/schedules/${id}`, {
-         headers: { Authorization: `Bearer ${localStorage.getItem('adminToken')}` }
        });
        setSchedules(schedules.filter(s => s._id !== id));
        alert('Schedule deleted successfully');
