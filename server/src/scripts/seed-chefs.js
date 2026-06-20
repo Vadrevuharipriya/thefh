@@ -156,7 +156,7 @@ async function seed() {
     await connectDB();
     console.log('Connected to MongoDB');
 
-    const basePath = path.resolve(__dirname, '../client/src/assets/chefs');
+    const basePath = path.resolve(__dirname, '../../client/src/assets/chefs');
     let upserted = 0;
 
     for (const pro of professionals) {

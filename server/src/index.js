@@ -2,7 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import { connectDB } from './db.js';
+import { connectDB } from './config/db.js';
 
 import authRoutes from './routes/authRoutes.js';
 import { adminLogin, logout as adminLogout } from './controllers/authController.js';
@@ -46,8 +46,8 @@ if (!CLIENT_URL) {
 app.use(cors({ origin: CLIENT_URL, credentials: true }));
 app.use(cookieParser());
 app.use(express.json({ limit: '20mb' }));
-  app.use(express.urlencoded({ extended: true, limit: '20mb' }));
-  
+app.use(express.urlencoded({ extended: true, limit: '20mb' }));
+
 
 // ─── CONNECT DB ─────────────────────────────────────────────
 await connectDB();

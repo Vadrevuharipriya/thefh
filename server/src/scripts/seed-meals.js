@@ -4,7 +4,7 @@ import { connectDB } from './db.js';
 import Meal from './models/Meal.js';
 
 // Import menu data
-import { menuSections, bhajiItems, pickleItems, chutneyItems } from '../client/src/data/menuData.js';
+import { menuSections, bhajiItems, pickleItems, chutneyItems } from '../../client/src/data/menuData.js';
 
 async function seed() {
   try {

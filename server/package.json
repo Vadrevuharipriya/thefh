@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "start": "node index.js",
-    "dev": "node --watch index.js",
-    "firebase-sync": "node scripts/firebase-sync.js"
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "firebase-sync": "node src/scripts/firebase-sync.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

@@ -11,7 +11,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Import the occasion page data
-import { occasionPageData } from '../client/src/data/occasionPageData.js';
+import { occasionPageData } from '../../client/src/data/occasionPageData.js';
 
 async function seedOccasions() {
   try {
@@ -19,7 +19,7 @@ async function seedOccasions() {
     console.log('Connected to MongoDB');
 
     // Path to the occasions images folder
-    const assetsDir = path.resolve(__dirname, '../client/src/assets/occasions');
+    const assetsDir = path.resolve(__dirname, '../../client/src/assets/occasions');
 
     // Read all files in the assets directory
     const files = fs.readdirSync(assetsDir);
