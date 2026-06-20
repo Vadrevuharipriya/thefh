@@ -48,7 +48,8 @@ The application is built using a modern **MERN** (MongoDB, Express.js, React, No
 * **SortableJS**: Used for drag-and-drop interactions, potentially for ordering items like banners, gallery images, or categories in the admin dashboard.
 
 #### API Communication & Data Fetching
-* **Axios**: A promise-based HTTP client. It is configured to handle API requests to the backend, intercepting requests to inject authentication tokens and handling response errors globally.
+* **TanStack Query (React Query)**: The primary tool for managing asynchronous state, caching, background updates, and data fetching synchronization across the entire application (both public and admin panels).
+* **Axios**: A promise-based HTTP client. Configured as `apiClient` with interceptors to automatically handle credentials (HTTPOnly cookies) and standardize API requests to the backend.
 
 ### Backend Ecosystem
 
