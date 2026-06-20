@@ -37,7 +37,30 @@ import { useAuth } from '../../contexts/AuthContext';
 import './AccountPage.scss';
 
 export default function AccountPage() {
+  const navigate = useNavigate();
+  const { logout: authLogout } = useAuth();
+
   const [activeTab, setActiveTab] = useState('profile');
+  const [user, setUser] = useState(null);
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [editMode, setEditMode] = useState(false);
+
+  const [newAddress, setNewAddress] = useState({
+    label: '',
+    name: '',
+    phone: '',
+    address: '',
+    city: '',
+    state: '',
+    pincode: ''
+  });
+  const [showAddAddress, setShowAddAddress] = useState(false);
+
+  const [paymentFormMode, setPaymentFormMode] = useState(null);
+  const [editPaymentMethod, setEditPaymentMethod] = useState({ type: '', name: '', details: '' });
+  const [editPaymentMethodIndex, setEditPaymentMethodIndex] = useState(null);
+
   const { data: profileData, isLoading: isLoadingProfile } = useAccountProfile();
   const { data: addressesData, isLoading: isLoadingAddresses } = useAccountAddresses();
   const { data: ordersData, isLoading: isLoadingOrders } = useUserOrders();
