@@ -249,6 +249,9 @@ Proper configuration of environment variables is crucial for the application to 
 | `FIREBASE_PRIVATE_KEY`| Firebase private key string. | `-----BEGIN PRIVATE KEY-----\n...` |
 | `WHATSAPP_BUSINESS_ACCESS_TOKEN`| Token for WhatsApp messaging. | *(From Meta Developer Dashboard)* |
 | `WHATSAPP_BUSINESS_PHONE_NUMBER_ID`| Specific Phone ID for WhatsApp API. | `123456789012345` |
+| `CLOUDINARY_CLOUD_NAME`| Cloudinary account name for image uploads. | `your_cloud_name` |
+| `CLOUDINARY_API_KEY`| Cloudinary API Key. | `your_api_key` |
+| `CLOUDINARY_API_SECRET`| Cloudinary API Secret. | `your_api_secret` |
 
 ### Client-Side (`/client/.env`)
 
