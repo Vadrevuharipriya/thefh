@@ -1,5 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { useAdminOccasion, useCreateAdminOccasion, useUpdateAdminOccasion } from '../../hooks/admin/useAdminOccasions';
 import axios from 'axios';
 import AdminSidebar from '../../components/AdminSidebar/AdminSidebar';
 import { Trash2 } from 'lucide-react';
@@ -23,36 +24,41 @@ export default function AdminOccasionFormPage() {
      pricingEnabled: false,
      displayStatus: 'Approved'
    });
-const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [imagePreview, setImagePreview] = useState('');
 
-  useEffect(() => {
+  const { data: occasionData, isError: occasionError } = useAdminOccasion(id);
+  const { mutateAsync: createOccasion, isPending: creating } = useCreateAdminOccasion();
+  const { mutateAsync: updateOccasion, isPending: updating } = useUpdateAdminOccasion();
 
-    if (id) {
-      axios.get(`/api/admin/occasions/${id}`, {
-      })
-         .then(res => {
-           setForm({
-             name: res.data.name || '',
-             image: res.data.image || '',
-             pageUrl: res.data.pageUrl || '',
-             innerHeader: res.data.innerHeader || '',
-             metaTitle: res.data.metaTitle || '',
-             metaKeyword: res.data.metaKeyword || '',
-             metaDesc: res.data.metaDesc || '',
-             pageDescription: res.data.pageDescription || '',
-             startingPrice: res.data.startingPrice || '',
-             pricingEnabled: res.data.pricingEnabled || false,
-             displayStatus: res.data.displayStatus || 'Approved'
-           });
-          if (res.data.image) {
-            setImagePreview(res.data.image);
-          }
-        })
-        .catch(() => setError('Failed to fetch occasion'));
+  const loading = creating || updating;
+
+  useEffect(() => {
+    if (occasionError) {
+      setError('Failed to fetch occasion');
     }
-  }, [id, navigate]);
+  }, [occasionError]);
+
+  useEffect(() => {
+    if (occasionData) {
+      setForm({
+        name: occasionData.name || '',
+        image: occasionData.image || '',
+        pageUrl: occasionData.pageUrl || '',
+        innerHeader: occasionData.innerHeader || '',
+        metaTitle: occasionData.metaTitle || '',
+        metaKeyword: occasionData.metaKeyword || '',
+        metaDesc: occasionData.metaDesc || '',
+        pageDescription: occasionData.pageDescription || '',
+        startingPrice: occasionData.startingPrice || '',
+        pricingEnabled: occasionData.pricingEnabled || false,
+        displayStatus: occasionData.displayStatus || 'Approved'
+      });
+      if (occasionData.image) {
+        setImagePreview(occasionData.image);
+      }
+    }
+  }, [occasionData]);
 
   const handleChange = e => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -118,7 +124,6 @@ const [loading, setLoading] = useState(false);
 
    const handleSubmit = async e => {
      e.preventDefault();
-     setLoading(true);
      setError('');
      try {
        const payload = { ...form };
@@ -151,15 +156,12 @@ const [loading, setLoading] = useState(false);
          innerHeaderLen: payload.innerHeader?.length || 0
        });
        
-       let result;
        if (id) {
-         result = await axios.put(`/api/admin/occasions/${id}`, payload, {
-         });
-         console.log('Update response:', result.data);
+         const result = await updateOccasion({ id, data: payload });
+         console.log('Update response:', result);
        } else {
-         result = await axios.post('/api/admin/occasions', payload, {
-         });
-         console.log('Create response:', result.data);
+         const result = await createOccasion(payload);
+         console.log('Create response:', result);
        }
        navigate('/admin/occasion');
      } catch (err) {
@@ -167,7 +169,6 @@ const [loading, setLoading] = useState(false);
        const msg = err.response?.data?.error || err.response?.data?.details || err.message || 'Failed to save occasion';
        setError(msg);
      }
-     setLoading(false);
    };
 
   // Map display values to database values

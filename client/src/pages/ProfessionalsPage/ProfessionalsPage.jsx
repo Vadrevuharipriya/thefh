@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Star, ChevronRight, Award } from 'lucide-react';
-import axios from 'axios';
+import { useChefs } from '../../hooks/public/useChefs';
+import Loader from '../../components/Common/Loader';
 import HERO_IMAGE from '../../assets/chefs/proffesionals-hero.avif';
 import './ProfessionalsPage.scss';
 
@@ -25,25 +26,9 @@ function ProfCard({ pro }) {
 }
 
 export default function ProfessionalsPage() {
-  const [professionals, setProfessionals] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [city, setCity] = useState('All Cities');
 
-  useEffect(() => {
-    const fetchProfessionals = async () => {
-      try {
-        setLoading(true);
-        const res = await axios.get('/api/chefs');
-        setProfessionals(res.data || []);
-      } catch (err) {
-        console.error('Failed to fetch professionals:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProfessionals();
-  }, []);
+  const { data: professionals = [], isLoading: loading } = useChefs();
 
   const filtered = useMemo(() => {
     return city === 'All Cities'
@@ -53,38 +38,8 @@ export default function ProfessionalsPage() {
 
   if (loading) {
     return (
-      <div className="pros-page">
-        <div className="pros-page__hero">
-          <div className="pros-page__hero-tag">
-            <Award size={14} />
-            Verified Professionals
-          </div>
-          <h1 className="pros-page__title">Our Professionals</h1>
-          <p className="pros-page__subtitle">
-            Our professionals are trained and verified from top restaurants and hotels.
-          </p>
-        </div>
-        <div className="pros-page__filter-wrap">
-          <div className="pros-page__filter-bar">
-            <div className="pros-page__filter-left">
-              <Star size={14} className="pros-page__filter-star" />
-              <span>Showing profiles of <strong>all professionals</strong></span>
-            </div>
-            <select
-              className="pros-page__city-select"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-            >
-              <option key="All Cities" value="All Cities">All Cities</option>
-              {/* Cities will be populated after data loads */}
-            </select>
-          </div>
-        </div>
-        <div className="pros-page__grid-wrap">
-          <div className="pros-page__empty">
-            <p>Loading professionals...</p>
-          </div>
-        </div>
+      <div className="pros-page min-h-screen">
+        <Loader />
       </div>
     );
   }

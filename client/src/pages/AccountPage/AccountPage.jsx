@@ -1,6 +1,20 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
+  useAccountProfile,
+  useAccountAddresses,
+  useUserOrders,
+  useAccountLoyalty,
+  useAccountReferral,
+  useAccountPayments,
+  useUpdateProfileMutation,
+  useAddAddressMutation,
+  useDeleteAddressMutation,
+  useAddPaymentMutation,
+  useUpdatePaymentMutation,
+  useDeletePaymentMutation,
+} from '../../hooks/public/useAccount';
+import {
   User,
   MapPin,
   ShoppingBag,
@@ -24,111 +38,40 @@ import './AccountPage.scss';
 
 export default function AccountPage() {
   const [activeTab, setActiveTab] = useState('profile');
-  const [user, setUser] = useState(null);
-  const [addresses, setAddresses] = useState([]);
-  const [orders, setOrders] = useState([]);
-  const [loyalty, setLoyalty] = useState(null);
-  const [referral, setReferral] = useState(null);
-  const [paymentMethods, setPaymentMethods] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [editMode, setEditMode] = useState(false);
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [newAddress, setNewAddress] = useState({
-    label: '',
-    name: '',
-    phone: '',
-    address: '',
-    city: '',
-    state: '',
-    pincode: ''
-  });
-  const [showAddAddress, setShowAddAddress] = useState(false);
-  const [editPaymentMethodIndex, setEditPaymentMethodIndex] = useState(null);
-  const [paymentFormMode, setPaymentFormMode] = useState(null);
-  const [editPaymentMethod, setEditPaymentMethod] = useState({
-    type: '',
-    name: '',
-    details: ''
-  });
+  const { data: profileData, isLoading: isLoadingProfile } = useAccountProfile();
+  const { data: addressesData, isLoading: isLoadingAddresses } = useAccountAddresses();
+  const { data: ordersData, isLoading: isLoadingOrders } = useUserOrders();
+  const { data: loyaltyData, isLoading: isLoadingLoyalty } = useAccountLoyalty();
+  const { data: referralData, isLoading: isLoadingReferral } = useAccountReferral();
+  const { data: paymentsData, isLoading: isLoadingPayments } = useAccountPayments();
 
-  const navigate = useNavigate();
-  const { user: authUser, logout: authLogout } = useAuth();
+  const { mutateAsync: updateProfile } = useUpdateProfileMutation();
+  const { mutateAsync: addAddress } = useAddAddressMutation();
+  const { mutateAsync: deleteAddress } = useDeleteAddressMutation();
+  const { mutateAsync: addPayment } = useAddPaymentMutation();
+  const { mutateAsync: updatePayment } = useUpdatePaymentMutation();
+  const { mutateAsync: deletePayment } = useDeletePaymentMutation();
+
+  const loading = isLoadingProfile || isLoadingAddresses || isLoadingOrders || isLoadingLoyalty || isLoadingReferral || isLoadingPayments;
 
   useEffect(() => {
-    fetchAccountData();
-  }, []);
-
-  const fetchAccountData = async () => {
-    setLoading(true);
-    try {
-      const [
-        profileRes,
-        addressesRes,
-        ordersRes,
-        loyaltyRes,
-        referralRes,
-        paymentsRes
-      ] = await Promise.allSettled([
-        fetch('/api/account/profile'),
-        fetch('/api/account/addresses'),
-        fetch('/api/account/orders'),
-        fetch('/api/account/loyalty'),
-        fetch('/api/account/referral'),
-        fetch('/api/account/payments')
-      ]);
-
-      const safeJson = async (promiseResult) => {
-        if (promiseResult.status === 'fulfilled') {
-          try {
-            return await promiseResult.value.json();
-          } catch (error) {
-            console.warn('Failed to parse JSON response:', error);
-            return null;
-          }
-        }
-        return null;
-      };
-
-      const profileData = await safeJson(profileRes);
-      const addressesData = (await safeJson(addressesRes)) || [];
-      const ordersData = (await safeJson(ordersRes)) || [];
-      const loyaltyData = await safeJson(loyaltyRes);
-      const referralData = await safeJson(referralRes);
-      const paymentsData = (await safeJson(paymentsRes)) || [];
-
-      setUser(profileData || null);
-      setName(profileData?.name || '');
-      setPhone(profileData?.phone || '');
-      setAddresses(Array.isArray(addressesData) ? addressesData : []);
-      setOrders(Array.isArray(ordersData) ? ordersData : []);
-      setLoyalty(loyaltyData);
-      setReferral(referralData);
-      setPaymentMethods(Array.isArray(paymentsData) ? paymentsData : []);
-    } catch (error) {
-      console.error('Failed to fetch account data:', error);
-      const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
-      setUser(storedUser);
-      setName(storedUser?.name || '');
-      setPhone(storedUser?.phone || '');
-      setOrders([]);
-    } finally {
-      setLoading(false);
+    if (profileData) {
+      setUser(profileData);
+      setName(profileData.name || '');
+      setPhone(profileData.phone || '');
     }
-  };
+  }, [profileData]);
+
+  const addresses = Array.isArray(addressesData) ? addressesData : [];
+  const orders = Array.isArray(ordersData) ? ordersData : [];
+  const loyalty = loyaltyData || null;
+  const referral = referralData || null;
+  const paymentMethods = Array.isArray(paymentsData) ? paymentsData : [];
 
   const handleAddPaymentMethod = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/account/payments', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(editPaymentMethod)
-      });
-      const data = await res.json();
-      setPaymentMethods(data);
+      await addPayment(editPaymentMethod);
       setPaymentFormMode(null);
       setEditPaymentMethodIndex(null);
       setEditPaymentMethod({ type: '', name: '', details: '' });
@@ -140,15 +83,7 @@ export default function AccountPage() {
   const handleUpdatePaymentMethod = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch(`/api/account/payments/${editPaymentMethodIndex}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(editPaymentMethod)
-      });
-      const data = await res.json();
-      setPaymentMethods(data);
+      await updatePayment({ index: editPaymentMethodIndex, data: editPaymentMethod });
       setPaymentFormMode(null);
       setEditPaymentMethodIndex(null);
       setEditPaymentMethod({ type: '', name: '', details: '' });
@@ -159,11 +94,7 @@ export default function AccountPage() {
 
   const handleDeletePaymentMethod = async (index) => {
     try {
-      const res = await fetch(`/api/account/payments/${index}`, {
-        method: 'DELETE',
-      });
-      const data = await res.json();
-      setPaymentMethods(data);
+      await deletePayment(index);
     } catch (error) {
       console.error('Failed to delete payment method:', error);
     }
@@ -172,15 +103,7 @@ export default function AccountPage() {
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/account/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name, phone })
-      });
-      const data = await res.json();
-      setUser(data);
+      await updateProfile({ name, phone });
       setEditMode(false);
     } catch (error) {
       console.error('Failed to update profile:', error);
@@ -190,15 +113,7 @@ export default function AccountPage() {
   const handleAddAddress = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/account/addresses', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newAddress)
-      });
-      const data = await res.json();
-      setAddresses(data);
+      await addAddress(newAddress);
       setNewAddress({
         label: '',
         name: '',
@@ -216,11 +131,7 @@ export default function AccountPage() {
 
   const handleDeleteAddress = async (index) => {
     try {
-      const res = await fetch(`/api/account/addresses/${index}`, {
-        method: 'DELETE',
-      });
-      const data = await res.json();
-      setAddresses(data);
+      await deleteAddress(index);
     } catch (error) {
       console.error('Failed to delete address:', error);
     }

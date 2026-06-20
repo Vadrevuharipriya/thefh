@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { CheckCircle, MessageCircle, ArrowLeft, Plus, Minus, Trash2, ShoppingBag, Download } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { COMMON_CART_ORDER_CATEGORY, writeCartItems, writeCartPlate, clearAllCarts } from '../../utils/cartStorage';
+import { useOccasions, useProducts } from '../../hooks/public/useProducts';
+import { useCreateOrderInquiryMutation } from '../../hooks/public/useOrder';
 import './OrderInquiryForm.scss';
 
 const LOCATIONS = ['Delhi NCR', 'Noida', 'Gurugram', 'Faridabad', 'Ghaziabad', 'Lucknow', 'Jaipur', 'Chandigarh', 'Dehradun', 'Other'];
@@ -18,12 +20,9 @@ export default function OrderInquiryForm({ plateData, orderCategory, plateSummar
   const maxDate = maxDateObj.toISOString().split('T')[0];
 
   const [plate, setPlate] = useState(plateData || {});
-  const [allItemsMap, setAllItemsMap] = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [occasions, setOccasions] = useState([]);
-  const [loadingOccasions, setLoadingOccasions] = useState(true);
   const [pdfUrl, setPdfUrl] = useState(null);
   const [inquiryId, setInquiryId] = useState(null);
 
@@ -46,11 +45,11 @@ export default function OrderInquiryForm({ plateData, orderCategory, plateSummar
   const handleDownloadPDF = async (e) => {
     e.preventDefault();
     if (!pdfUrl) return;
-    
+
     try {
       const response = await fetch(pdfUrl);
       if (!response.ok) throw new Error('Failed to fetch PDF');
-      
+
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -74,67 +73,34 @@ export default function OrderInquiryForm({ plateData, orderCategory, plateSummar
 
   const plateEntries = Object.entries(plate).filter(([, count]) => count > 0);
 
-  useEffect(() => {
-    const fetchOccasions = async () => {
-      try {
-        const res = await fetch('/api/occasions?t=' + Date.now());
-        if (res.ok) {
-          const data = await res.json();
-          setOccasions(data);
-        }
-      } catch (err) {
-        console.error('Failed to fetch occasions:', err);
-      } finally {
-        setLoadingOccasions(false);
-      }
-    };
-    fetchOccasions();
-  }, []);
+  const { data: occasionsData, isLoading: loadingOccasions } = useOccasions();
+  const occasions = Array.isArray(occasionsData) ? occasionsData : [];
 
-  useEffect(() => {
+  const { data: allProductsData } = useProducts();
+  const { mutateAsync: createOrderInquiry } = useCreateOrderInquiryMutation();
+
+  const allItemsMap = useMemo(() => {
+    if (!allProductsData) return {};
+    const map = {};
     const plateIds = Object.keys(plate);
-    if (plateIds.length === 0) {
-      setAllItemsMap({});
-      return;
-    }
-
-    const knownPlateIds = Object.keys(allItemsMap);
-    const hasAllItems = plateIds.length > 0 && plateIds.every(id => id in allItemsMap);
-    if (hasAllItems) {
-      return;
-    }
-
-    const fetchPlateItems = async () => {
-      try {
-        const requests = plateIds.map(id =>
-          fetch(`/api/products/${id}`).then(res => res.json()).catch(() => null)
-        );
-        const results = await Promise.all(requests);
-        const map = { ...allItemsMap };
-        results.forEach((product, index) => {
-          const id = plateIds[index];
-          if (product && product._id) {
-            map[id] = {
-              id,
-              name: product.name,
-              price: product.price,
-              image: product.image,
-              veg: product.vegType === 'Vegetarian',
-              cuisineName: product.cuisine?.name || product.cuisineName || 'N/A',
-              menuCategory: product.menuCategory || 'main',
-              category: product.menuCategory || 'main',
-              type: 'dish'
-            };
-          }
-        });
-        setAllItemsMap(map);
-      } catch (error) {
-        console.error('Failed to fetch plate items:', error);
+    allProductsData.forEach(product => {
+      if (plateIds.includes(product._id || product.id)) {
+        const id = product._id || product.id;
+        map[id] = {
+          id,
+          name: product.name,
+          price: product.price,
+          image: product.image,
+          veg: product.vegType === 'Vegetarian',
+          cuisineName: product.cuisine?.name || product.cuisineName || 'N/A',
+          menuCategory: product.menuCategory || 'main',
+          category: product.menuCategory || 'main',
+          type: 'dish'
+        };
       }
-    };
-
-    fetchPlateItems();
-  }, [plate]);
+    });
+    return map;
+  }, [allProductsData, plate]);
 
   const summary = (() => {
     let subtotal = 0;
@@ -233,32 +199,21 @@ export default function OrderInquiryForm({ plateData, orderCategory, plateSummar
         })),
       };
 
-      const response = await fetch('/api/order-inquiry', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(payload),
-      });
+      const data = await createOrderInquiry(payload);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to submit enquiry');
-      }
-
-      const data = await response.json();
       setInquiryId(data.inquiry._id);
       setPdfUrl(`/api/order-inquiry/${data.inquiry._id}/quotation`);
       setPlate({});
-      setAllItemsMap({});
       clearAllCarts();
       setSubmitted(true);
     } catch (err) {
       console.error('Submission error:', err);
-      setError(err.message || 'Failed to submit enquiry. Please try again.');
+      setError(err.response?.data?.error || err.message || 'Failed to submit enquiry. Please try again.');
       setLoading(false);
     }
   };
 
-if (submitted) {
+  if (submitted) {
     return (
       <div className="order-success-modal-overlay">
         <div className="order-success-modal">
@@ -270,7 +225,7 @@ if (submitted) {
             Thank You! We have received your request. Our representative will contact you shortly.
           </p>
           {pdfUrl && (
-            <button 
+            <button
               type="button"
               onClick={handleDownloadPDF}
               className="order-success-download-btn"
@@ -300,63 +255,63 @@ if (submitted) {
               <div className="order-inquiry-form__section">
                 <div className="order-inquiry-form__section-title">Event Detail</div>
 
-<div className="order-inquiry-form__row">
-                   <div className="order-inquiry-form__group">
-                     <label className="order-inquiry-form__label">Select location <span className="req">*</span></label>
-                     <select
-                       className="order-inquiry-form__select"
-                       value={form.location}
-                       onChange={(e) => set('location', e.target.value)}
-                     >
-                       <option value="">Choose location...</option>
-                       {LOCATIONS.map(loc => (
-                         <option key={loc} value={loc}>{loc}</option>
-                       ))}
-                     </select>
-                   </div>
-
-                   <div className="order-inquiry-form__group">
-                     <label className="order-inquiry-form__label">Select occasion <span className="req">*</span></label>
-                     <select
-                       className="order-inquiry-form__select"
-                       value={form.occasion}
-                       onChange={(e) => set('occasion', e.target.value)}
-                       disabled={loadingOccasions}
-                     >
-                       <option value="">Choose occasion...</option>
-                       {occasions.map(occ => (
-                         <option key={occ._id} value={occ.name}>{occ.name}</option>
-                       ))}
-                     </select>
-                   </div>
-                 </div>
-
-                 <div className="order-inquiry-form__row">
-                   <div className="order-inquiry-form__group">
-                     <label className="order-inquiry-form__label">No of people <span className="req">*</span></label>
-                     <select
-                       className="order-inquiry-form__select"
-                       value={form.numberOfPeople}
-                       onChange={(e) => set('numberOfPeople', e.target.value)}
-                     >
-                       <option value="">Select number...</option>
-                       {PEOPLE_OPTIONS.map(opt => (
-                         <option key={opt} value={opt}>{opt}</option>
-                       ))}
-                     </select>
+                <div className="order-inquiry-form__row">
+                  <div className="order-inquiry-form__group">
+                    <label className="order-inquiry-form__label">Select location <span className="req">*</span></label>
+                    <select
+                      className="order-inquiry-form__select"
+                      value={form.location}
+                      onChange={(e) => set('location', e.target.value)}
+                    >
+                      <option value="">Choose location...</option>
+                      {LOCATIONS.map(loc => (
+                        <option key={loc} value={loc}>{loc}</option>
+                      ))}
+                    </select>
                   </div>
 
-<div className="order-inquiry-form__group">
-                     <label className="order-inquiry-form__label">Select date <span className="req">*</span></label>
-                     <input
-                       type="date"
-                       className="order-inquiry-form__input order-inquiry-form__input--date"
-                       min={today}
-                       max={maxDate}
-                       value={form.eventDate}
-                       onChange={(e) => set('eventDate', e.target.value)}
-                     />
-                   </div>
+                  <div className="order-inquiry-form__group">
+                    <label className="order-inquiry-form__label">Select occasion <span className="req">*</span></label>
+                    <select
+                      className="order-inquiry-form__select"
+                      value={form.occasion}
+                      onChange={(e) => set('occasion', e.target.value)}
+                      disabled={loadingOccasions}
+                    >
+                      <option value="">Choose occasion...</option>
+                      {occasions.map(occ => (
+                        <option key={occ._id} value={occ.name}>{occ.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="order-inquiry-form__row">
+                  <div className="order-inquiry-form__group">
+                    <label className="order-inquiry-form__label">No of people <span className="req">*</span></label>
+                    <select
+                      className="order-inquiry-form__select"
+                      value={form.numberOfPeople}
+                      onChange={(e) => set('numberOfPeople', e.target.value)}
+                    >
+                      <option value="">Select number...</option>
+                      {PEOPLE_OPTIONS.map(opt => (
+                        <option key={opt} value={opt}>{opt}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="order-inquiry-form__group">
+                    <label className="order-inquiry-form__label">Select date <span className="req">*</span></label>
+                    <input
+                      type="date"
+                      className="order-inquiry-form__input order-inquiry-form__input--date"
+                      min={today}
+                      max={maxDate}
+                      value={form.eventDate}
+                      onChange={(e) => set('eventDate', e.target.value)}
+                    />
+                  </div>
                 </div>
 
                 <div className="order-inquiry-form__row">
@@ -501,14 +456,14 @@ if (submitted) {
                 <span className="val">₹{summary.totalPayable}</span>
               </div>
 
-<button type="submit" form="order-form" className="vmc-summary-card__btn" disabled={loading}>
-                 {loading ? 'Submitting...' : 'Continue'}
-               </button>
-               {error && (
-                 <p className="order-inquiry-form__error" style={{ color: '#ef4444', marginTop: '0.75rem' }}>{error}</p>
-               )}
-             </div>
-           </aside>
+              <button type="submit" form="order-form" className="vmc-summary-card__btn" disabled={loading}>
+                {loading ? 'Submitting...' : 'Continue'}
+              </button>
+              {error && (
+                <p className="order-inquiry-form__error" style={{ color: '#ef4444', marginTop: '0.75rem' }}>{error}</p>
+              )}
+            </div>
+          </aside>
         </div>
       </div>
     </div>

@@ -1,49 +1,21 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { useAdminPanelUsers, useCreateAdminPanelUser, useUpdateAdminPanelUser, useDeleteAdminPanelUser } from '../../hooks/admin/useAdminPanelUsers';
 import { Search, Plus, Edit, Trash2, Eye } from 'lucide-react';
 import AdminSidebar from '../../components/AdminSidebar/AdminSidebar';
 import './AdminPanelUsersPage.scss';
 
 export default function AdminPanelUsersPage() {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { data: usersData, isLoading: loading } = useAdminPanelUsers();
+  const { mutateAsync: createUser } = useCreateAdminPanelUser();
+  const { mutateAsync: updateUser } = useUpdateAdminPanelUser();
+  const { mutateAsync: deleteUser } = useDeleteAdminPanelUser();
+
+  const users = Array.isArray(usersData) ? usersData : [];
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [error, setError] = useState('');
   const [viewUser, setViewUser] = useState(null);
-
-  const fetchUsers = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError('');
-      console.log('[AdminPanelUsersPage] Fetching panel users');
-      const res = await fetch('/api/admin/panel-users', {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      console.log('[AdminPanelUsersPage] Response status:', res.status);
-      if (!res.ok) {
-        const errData = await res.json();
-        console.error('[AdminPanelUsersPage] API error:', errData);
-        setError('Failed to fetch users. Please ensure the server is running.');
-        return;
-      }
-      const data = await res.json();
-      console.log('[AdminPanelUsersPage] Users fetched:', JSON.stringify(data));
-      setUsers(Array.isArray(data) ? data : (data.users || []));
-    } catch (err) {
-      console.error('[AdminPanelUsersPage] Failed to fetch users:', err);
-      setError('Failed to fetch users. Please check your connection.');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
 
   // User Summary counts
   const counts = {
@@ -75,20 +47,9 @@ export default function AdminPanelUsersPage() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this user?')) return;
+    if (!window.confirm('Are you sure you want to delete this user?')) return;
     try {
-      const res = await fetch(`/api/admin/panel-users/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      if (res.ok) {
-        setUsers(users.filter(u => u._id !== id));
-        console.log('[AdminPanelUsersPage] User deleted:', id);
-      } else {
-        console.error('[AdminPanelUsersPage] Delete failed:', await res.json());
-      }
+      await deleteUser(id);
     } catch (err) {
       console.error('[AdminPanelUsersPage] Failed to delete user:', err);
     }
@@ -109,38 +70,18 @@ export default function AdminPanelUsersPage() {
         role: formData.get('role') || 'Panel User'
       };
 
-      const url = editingUser
-        ? `/api/admin/panel-users/${editingUser._id}`
-        : '/api/admin/panel-users';
-      const method = editingUser ? 'PUT' : 'POST';
-
-      const res = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
-
-      const resData = await res.json();
-      console.log('[AdminPanelUsersPage] Save response:', JSON.stringify(resData));
-
-      if (res.ok) {
-        if (editingUser) {
-          setUsers(users.map(u => u._id === editingUser._id ? resData : u));
-        } else {
-          setUsers([...users, resData]);
-        }
-        setShowModal(false);
-        setEditingUser(null);
-        setError('');
+      if (editingUser) {
+        await updateUser({ id: editingUser._id, data });
       } else {
-        console.error('[AdminPanelUsersPage] Save failed:', resData);
-        setError(resData.error || 'Failed to save user');
+        await createUser(data);
       }
+      
+      setShowModal(false);
+      setEditingUser(null);
+      setError('');
     } catch (err) {
       console.error('[AdminPanelUsersPage] Save error:', err);
-      setError('Failed to save user. Please try again.');
+      setError(err.response?.data?.error || 'Failed to save user. Please try again.');
     }
   };
 
@@ -202,7 +143,6 @@ export default function AdminPanelUsersPage() {
         {error && (
           <div className="admin-panel-users__error">
             <p>{error}</p>
-            <button onClick={fetchUsers} className="btn-primary" style={{ marginTop: '0.5rem' }}>Retry</button>
           </div>
         )}
 

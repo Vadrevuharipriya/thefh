@@ -1,13 +1,17 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAdminBlogs, useCreateBlog, useUpdateBlog, useDeleteBlog } from '../../hooks/admin/useAdminBlog';
+import { apiClient } from '../../utils/axiosInstance';
 import AdminSidebar from '../../components/AdminSidebar/AdminSidebar';
 import { Plus, Edit, Trash2, Search, Trash } from 'lucide-react';
 import './AdminBlogsPage.scss';
 
 export default function AdminBlogsPage() {
-  const [blogs, setBlogs] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { data: blogs = [], isLoading: loading } = useAdminBlogs();
+  const createBlog = useCreateBlog();
+  const updateBlog = useUpdateBlog();
+  const deleteBlog = useDeleteBlog();
+
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingBlog, setEditingBlog] = useState(null);
@@ -22,24 +26,6 @@ export default function AdminBlogsPage() {
     author: 'The Famous Halwai Team',
     published: true
   });
-  const navigate = useNavigate();
-
-  useEffect(() => {
-
-    fetchBlogs();
-  }, [navigate]);
-
-  const fetchBlogs = async () => {
-    try {
-      const res = await axios.get('/api/admin/blogs', {
-      });
-      setBlogs(res.data);
-    } catch (err) {
-      console.error('Failed to fetch blogs:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const filteredBlogs = blogs.filter(
     (b) =>
@@ -50,12 +36,7 @@ export default function AdminBlogsPage() {
   const handleDelete = async (id) => {
     if (!confirm('Are you sure you want to delete this blog?')) return;
     try {
-      await fetch(`/api/admin/blogs/${id}`, {
-        method: 'DELETE',
-        headers: {
-        }
-      });
-      fetchBlogs();
+      await deleteBlog.mutateAsync(id);
     } catch (err) {
       console.error('Delete failed:', err);
     }
@@ -64,37 +45,29 @@ export default function AdminBlogsPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const url = editingBlog
-        ? `/api/admin/blogs/${editingBlog._id}`
-        : '/api/admin/blogs';
-      const method = editingBlog ? 'PUT' : 'POST';
+      if (editingBlog) {
+        await updateBlog.mutateAsync({ id: editingBlog._id, data: formData });
+      } else {
+        await createBlog.mutateAsync(formData);
+      }
 
-      await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
+      setShowModal(false);
+      setEditingBlog(null);
+      setFormData({
+        title: '',
+        slug: '',
+        excerpt: '',
+        content: '',
+        image: '',
+        category: '',
+        author: 'The Famous Halwai Team',
+        published: true
       });
-
-setShowModal(false);
-       setEditingBlog(null);
-       setFormData({
-         title: '',
-         slug: '',
-         excerpt: '',
-         content: '',
-         image: '',
-         category: '',
-         author: 'The Famous Halwai Team',
-         published: true
-       });
-       setImagePreview('');
-       fetchBlogs();
-     } catch (err) {
-       console.error('Save failed:', err);
-     }
-   };
+      setImagePreview('');
+    } catch (err) {
+      console.error('Save failed:', err);
+    }
+  };
 
   const openEdit = (blog) => {
     setEditingBlog(blog);
@@ -142,14 +115,15 @@ setShowModal(false);
     uploadData.append('image', file);
 
     try {
-      const res = await axios.post('/api/admin/upload', uploadData, {
+      const res = await apiClient.post('/admin/upload', uploadData, {
         headers: {
+          'Content-Type': 'multipart/form-data'
         }
       });
       setFormData({ ...formData, image: res.data.url });
       setImagePreview(res.data.url);
     } catch (err) {
-      console.error('Failed to upload image');
+      console.error('Failed to upload image', err);
     }
   };
 

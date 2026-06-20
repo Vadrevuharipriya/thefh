@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, Star } from 'lucide-react';
 import { testimonials } from '../../data/homeData';
+import { useReviews } from '../../hooks/public/useReviews';
 import './GoogleReviewsSection.scss';
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
@@ -105,28 +106,25 @@ function ReviewCard({ review }) {
 
 // ─── Main section ──────────────────────────────────────────────────────────────
 export default function GoogleReviewsSection() {
-  const [reviews, setReviews] = useState([]);
-  const [meta, setMeta] = useState({ rating: 4.9, totalReviews: 155 });
+  const { data: reviewsData, isLoading: loading, isError } = useReviews();
+
   const [current, setCurrent] = useState(0);
-  const [loading, setLoading] = useState(true);
   const [visibleCount, setVisibleCount] = useState(3);
   const viewportRef = useRef(null);
 
-  // ── Data fetching ────────────────────────────────────────────────────────────
-  useEffect(() => {
-    fetch('/api/reviews')
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.reviews?.length) {
-          setReviews(normaliseApiReviews(data));
-          setMeta({ rating: data.rating, totalReviews: data.totalReviews });
-        } else {
-          setReviews(normaliseFallback(testimonials));
-        }
-      })
-      .catch(() => setReviews(normaliseFallback(testimonials)))
-      .finally(() => setLoading(false));
-  }, []);
+  const reviews = useMemo(() => {
+    if (isError || !reviewsData || !reviewsData.reviews?.length) {
+      return normaliseFallback(testimonials);
+    }
+    return normaliseApiReviews(reviewsData);
+  }, [reviewsData, isError]);
+
+  const meta = useMemo(() => {
+    if (isError || !reviewsData || !reviewsData.reviews?.length) {
+      return { rating: 4.9, totalReviews: 155 };
+    }
+    return { rating: reviewsData.rating, totalReviews: reviewsData.totalReviews };
+  }, [reviewsData, isError]);
 
   // ── Responsive visible count via ResizeObserver ───────────────────────────────
   const updateVisibleCount = useCallback(() => {

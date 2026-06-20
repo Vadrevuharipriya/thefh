@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useAdminWebsitePages, useCreateAdminWebsitePage, useUpdateAdminWebsitePage, useDeleteAdminWebsitePage } from '../../hooks/admin/useAdminWebsitePages';
 import axios from 'axios';
 import AdminSidebar from '../../components/AdminSidebar/AdminSidebar';
 import { Plus, Edit, Trash2, Search, FileText, Globe, Settings, Trash } from 'lucide-react';
@@ -14,8 +15,12 @@ const PAGE_TYPES = [
 ];
 
 export default function AdminWebsitePagesPage() {
-  const [pages, setPages] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { data: pagesData, isLoading: loading } = useAdminWebsitePages();
+  const { mutateAsync: createPage } = useCreateAdminWebsitePage();
+  const { mutateAsync: updatePage } = useUpdateAdminWebsitePage();
+  const { mutateAsync: deletePage } = useDeleteAdminWebsitePage();
+  
+  const pages = Array.isArray(pagesData) ? pagesData : [];
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingPage, setEditingPage] = useState(null);
@@ -31,22 +36,6 @@ export default function AdminWebsitePagesPage() {
     content: '',
     featuredImage: ''
   });
-
-  useEffect(() => {
-    fetchPages();
-  }, []);
-
-  const fetchPages = async () => {
-    try {
-      const res = await axios.get('/api/admin/website-pages', {
-      });
-      setPages(res.data);
-    } catch (err) {
-      console.error('Failed to fetch website pages:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const filteredPages = pages.filter(
     (p) =>
@@ -78,25 +67,15 @@ export default function AdminWebsitePagesPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const url = editingPage
-        ? `/api/admin/website-pages/${editingPage._id}`
-        : '/api/admin/website-pages';
-      const method = editingPage ? 'PUT' : 'POST';
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-      });
-
-      if (!response.ok) throw new Error('Save failed');
+      if (editingPage) {
+        await updatePage({ id: editingPage._id, data: formData });
+      } else {
+        await createPage(formData);
+      }
 
       setShowModal(false);
       setEditingPage(null);
       resetForm();
-      fetchPages();
     } catch (err) {
       console.error('Save failed:', err);
     }
@@ -171,14 +150,9 @@ export default function AdminWebsitePagesPage() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this page?')) return;
+    if (!window.confirm('Are you sure you want to delete this page?')) return;
     try {
-      await fetch(`/api/admin/website-pages/${id}`, {
-        method: 'DELETE',
-        headers: {
-        }
-      });
-      fetchPages();
+      await deletePage(id);
     } catch (err) {
       console.error('Delete failed:', err);
     }

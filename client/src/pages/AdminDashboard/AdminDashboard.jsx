@@ -1,52 +1,30 @@
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import AdminSidebar from '../../components/AdminSidebar/AdminSidebar';
 import { Package, FileText, Users, TrendingUp } from 'lucide-react';
+import { useProducts } from '../../hooks/public/useProducts';
+import { useBlogs } from '../../hooks/public/useBlogs';
+import { useAdminEnquiries } from '../../hooks/admin/useAdminEnquiry';
 import './AdminDashboard.scss';
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState({
-    products: 0,
-    blogs: 0,
-    enquiries: 0
-  });
-  const [loading, setLoading] = useState(true);
+  const { data: productsData, isLoading: loadingProducts } = useProducts();
+  const { data: blogsData, isLoading: loadingBlogs } = useBlogs();
+  const { data: enquiriesData, isLoading: loadingEnquiries } = useAdminEnquiries();
 
-  useEffect(() => {
-    fetchStats();
-  }, []);
+  const loading = loadingProducts || loadingBlogs || loadingEnquiries;
 
-  const fetchStats = async () => {
-    try {
-      const [productsRes, blogsRes, enquiriesRes] = await Promise.all([
-        fetch('/api/products', { credentials: 'include' }),
-        fetch('/api/blogs', { credentials: 'include' }),
-        fetch('/api/enquiries', { credentials: 'include' })
-      ]);
-
-      const [productsData, blogsData, enquiriesData] = await Promise.all([
-        productsRes.json(),
-        blogsRes.json(),
-        enquiriesRes.json()
-      ]);
-
-      const normalizeCount = (resp) => {
-        if (!resp) return 0;
-        if (Array.isArray(resp)) return resp.length;
-        if (Array.isArray(resp.data)) return resp.data.length;
-        return 0;
-      };
-
-      setStats({
-        products: normalizeCount(productsData),
-        blogs: normalizeCount(blogsData),
-        enquiries: normalizeCount(enquiriesData)
-      });
-    } catch (err) {
-      console.error('Failed to fetch stats:', err);
-    } finally {
-      setLoading(false);
-    }
+  const normalizeCount = (resp) => {
+    if (!resp) return 0;
+    if (Array.isArray(resp)) return resp.length;
+    if (Array.isArray(resp.data)) return resp.data.length;
+    return 0;
   };
+
+  const stats = useMemo(() => ({
+    products: normalizeCount(productsData),
+    blogs: normalizeCount(blogsData),
+    enquiries: normalizeCount(enquiriesData)
+  }), [productsData, blogsData, enquiriesData]);
 
   const statCards = [
     {

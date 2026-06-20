@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useAdminMeal, useCreateAdminMeal, useUpdateAdminMeal } from '../../hooks/admin/useAdminMeals';
 import AdminSidebar from '../../components/AdminSidebar/AdminSidebar';
 import './AdminMealsFormPage.scss';
 
@@ -13,23 +13,24 @@ export default function AdminMealsFormPage() {
      displayStatus: 'Approved',
      isCategory: true // Default to true for meals page (Breakfast/Lunch/Snacks/Dinner)
    });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+   const [error, setError] = useState('');
+
+   const { data: mealData } = useAdminMeal(id);
+   const { mutateAsync: createMeal, isPending: creating } = useCreateAdminMeal();
+   const { mutateAsync: updateMeal, isPending: updating } = useUpdateAdminMeal();
+
+   const loading = creating || updating;
 
    useEffect(() => {
-     if (id) {
-       axios.get(`/api/meals/${id}`)
-         .then(res => {
-           setForm({
-             name: res.data.name || '',
-             shortDescription: res.data.shortDescription || '',
-             displayStatus: res.data.displayStatus || 'Approved',
-             isCategory: res.data.isCategory || false
-           });
-         })
-         .catch(() => setError('Failed to fetch meal'));
+     if (mealData) {
+       setForm({
+         name: mealData.name || '',
+         shortDescription: mealData.shortDescription || '',
+         displayStatus: mealData.displayStatus || 'Approved',
+         isCategory: mealData.isCategory || false
+       });
      }
-   }, [id]);
+   }, [mealData]);
 
   const handleChange = e => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -37,25 +38,21 @@ export default function AdminMealsFormPage() {
 
   const handleSubmit = async e => {
     e.preventDefault();
-    setLoading(true);
     setError('');
     try {
       const payload = { ...form };
       if (id) {
-        await axios.put(`/api/admin/meals/${id}`, payload, {
-        });
+        await updateMeal({ id, data: payload });
       } else {
         // New meals from this page are categories by default
         payload.isCategory = true;
-        await axios.post('/api/admin/meals', payload, {
-        });
+        await createMeal(payload);
       }
       navigate('/admin/meals');
     } catch (err) {
       console.error('Save error:', err);
       setError(err.response?.data?.error || 'Failed to save meal');
     }
-    setLoading(false);
   };
 
   return (

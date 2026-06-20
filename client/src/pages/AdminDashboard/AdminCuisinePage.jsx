@@ -1,46 +1,24 @@
-import { useEffect, useState } from 'react';
-import axios from 'axios';
+import { useState } from 'react';
+import { useAdminCuisines, useUpdateAdminCuisineStatus } from '../../hooks/admin/useAdminCuisine';
 import { Link } from 'react-router-dom';
 import AdminSidebar from '../../components/AdminSidebar/AdminSidebar';
 import './AdminCuisinePage.scss';
 
 export default function AdminCuisinePage() {
-  const [cuisines, setCuisines] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const { data: cuisinesData, isLoading: loading, isError, refetch } = useAdminCuisines();
+  const { mutateAsync: updateStatus } = useUpdateAdminCuisineStatus();
 
-   const fetchCuisines = async () => {
-     setLoading(true);
-     setError('');
-     try {
-
-       const res = await axios.get('/api/admin/cuisines', {
-       });
-       setCuisines(res.data);
-     } catch (err) {
-       setError('Failed to fetch cuisines');
-       console.error('Fetch error:', err);
-     }
-     setLoading(false);
-   };
+  const cuisines = Array.isArray(cuisinesData) ? cuisinesData : [];
 
   const handleStatusChange = async (id, currentStatus) => {
     const newStatus = currentStatus === 'Approved' ? 'Pending' : 'Approved';
     try {
-      await axios.put(`/api/admin/cuisines/${id}`, { displayStatus: newStatus }, {
-      });
-      setCuisines(cuisines.map(c => 
-        c._id === id ? { ...c, displayStatus: newStatus } : c
-      ));
+      await updateStatus({ id, status: newStatus });
     } catch (err) {
       console.error('Failed to update status:', err);
       alert('Failed to update status');
     }
   };
-
-  useEffect(() => {
-    fetchCuisines();
-  }, []);
 
   return (
     <div className="admin-cuisine-page-container">
@@ -57,12 +35,12 @@ export default function AdminCuisinePage() {
               <Link to="/admin/cuisine/new" className="btn btn-primary btn-add">Add New</Link>
             </div>
 
-            {error && (
+            {isError && (
               <div className="table-empty">
                 <div className="table-empty-icon">⚠️</div>
                 <h4>Error loading data</h4>
-                <p>{error}</p>
-                <button onClick={fetchCuisines} className="btn btn-primary" style={{marginTop: '1rem'}}>Retry</button>
+                <p>Failed to fetch cuisines</p>
+                <button onClick={() => refetch()} className="btn btn-primary" style={{marginTop: '1rem'}}>Retry</button>
               </div>
             )}
 
@@ -73,7 +51,7 @@ export default function AdminCuisinePage() {
               </div>
             )}
 
-            {!loading && !error && cuisines.length === 0 && (
+            {!loading && !isError && cuisines.length === 0 && (
               <div className="table-empty">
                 <div className="table-empty-icon">📝</div>
                 <h4>No cuisines found</h4>
@@ -81,7 +59,7 @@ export default function AdminCuisinePage() {
               </div>
             )}
 
-            {!loading && cuisines.length > 0 && (
+            {!loading && !isError && cuisines.length > 0 && (
               <table className="cuisine-table">
                 <thead>
                   <tr>

@@ -1,5 +1,6 @@
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { useAdminService, useCreateAdminService, useUpdateAdminService } from '../../hooks/admin/useAdminServices';
 import axios from 'axios';
 import AdminSidebar from '../../components/AdminSidebar/AdminSidebar';
 import { Trash2 } from 'lucide-react';
@@ -22,29 +23,35 @@ export default function AdminServiceFormPage() {
     isCategory: true
   });
   const [imagePreview, setImagePreview] = useState('');
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const { data: serviceData, isError: serviceError } = useAdminService(id);
+  const { mutateAsync: createService, isPending: creating } = useCreateAdminService();
+  const { mutateAsync: updateService, isPending: updating } = useUpdateAdminService();
+
+  const loading = creating || updating;
+
   useEffect(() => {
-    if (id) {
-      axios.get(`/api/admin/services/${id}`)
-        .then(res => {
-          const data = res.data;
-          setForm({
-            name: data.name || '',
-            menuName: data.menuName || '',
-            filename: data.filename || '',
-            metaTitle: data.metaTitle || '',
-            metaDesc: data.metaDesc || '',
-            image: data.image || '',
-            displayStatus: data.displayStatus || 'Approved',
-            isCategory: data.isCategory !== false
-          });
-          if (data.image) setImagePreview(data.image);
-        })
-        .catch(() => setError('Failed to fetch service'));
+    if (serviceError) {
+      setError('Failed to fetch service');
     }
-  }, [id]);
+  }, [serviceError]);
+
+  useEffect(() => {
+    if (serviceData) {
+      setForm({
+        name: serviceData.name || '',
+        menuName: serviceData.menuName || '',
+        filename: serviceData.filename || '',
+        metaTitle: serviceData.metaTitle || '',
+        metaDesc: serviceData.metaDesc || '',
+        image: serviceData.image || '',
+        displayStatus: serviceData.displayStatus || 'Approved',
+        isCategory: serviceData.isCategory !== false
+      });
+      if (serviceData.image) setImagePreview(serviceData.image);
+    }
+  }, [serviceData]);
 
   const handleChange = e => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -87,22 +94,18 @@ export default function AdminServiceFormPage() {
 
   const handleSubmit = async e => {
     e.preventDefault();
-    setLoading(true);
     setError('');
     try {
       if (id) {
-        await axios.put(`/api/admin/services/${id}`, form, {
-        });
+        await updateService({ id, data: form });
       } else {
-        await axios.post('/api/admin/services', form, {
-        });
+        await createService(form);
       }
       navigate('/admin/services');
     } catch (err) {
       console.error('Save error:', err);
       setError(err.response?.data?.error || 'Failed to save service');
     }
-    setLoading(false);
   };
 
    return (

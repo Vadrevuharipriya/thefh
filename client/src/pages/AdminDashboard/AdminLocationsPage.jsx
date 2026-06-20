@@ -1,12 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useAdminLocations, useCreateAdminLocation, useUpdateAdminLocation, useDeleteAdminLocation, useUpdateAdminLocationStatus } from '../../hooks/admin/useAdminLocations';
 import axios from 'axios';
 import AdminSidebar from '../../components/AdminSidebar/AdminSidebar';
 import { Plus, Edit, Trash2, Search, Trash } from 'lucide-react';
 import './AdminLocationsPage.scss';
 
 export default function AdminLocationsPage() {
-  const [locations, setLocations] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingLocation, setEditingLocation] = useState(null);
@@ -18,21 +17,13 @@ export default function AdminLocationsPage() {
     displayStatus: 'Approved'
   });
 
-  useEffect(() => {
-    fetchLocations();
-  }, []);
+  const { data: locationsData, isLoading: loading } = useAdminLocations();
+  const { mutateAsync: createLocation } = useCreateAdminLocation();
+  const { mutateAsync: updateLocation } = useUpdateAdminLocation();
+  const { mutateAsync: deleteLocation } = useDeleteAdminLocation();
+  const { mutateAsync: updateStatus } = useUpdateAdminLocationStatus();
 
-  const fetchLocations = async () => {
-    try {
-      const res = await axios.get('/api/admin/locations', {
-      });
-      setLocations(Array.isArray(res.data) ? res.data : []);
-    } catch (err) {
-      console.error('Failed to fetch locations:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const locations = Array.isArray(locationsData) ? locationsData : [];
 
   const filteredLocations = locations.filter(
     (l) =>
@@ -59,14 +50,9 @@ export default function AdminLocationsPage() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this location?')) return;
+    if (!window.confirm('Are you sure you want to delete this location?')) return;
     try {
-      await fetch(`/api/admin/locations/${id}`, {
-        method: 'DELETE',
-        headers: {
-        }
-      });
-      fetchLocations();
+      await deleteLocation(id);
     } catch (err) {
       console.error('Delete failed:', err);
     }
@@ -76,20 +62,7 @@ export default function AdminLocationsPage() {
     const nextStatus = currentStatus === 'Approved' ? 'Pending' : 'Approved';
 
     try {
-      const res = await fetch(`/api/admin/locations/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ displayStatus: nextStatus })
-      });
-      const data = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
-        throw new Error(data.details || data.error || 'Status update failed');
-      }
-
-      setLocations((prev) => prev.map((location) => (location._id === id ? data : location)));
+      await updateStatus({ id, status: nextStatus });
     } catch (err) {
       console.error('Status update failed:', err);
     }
@@ -98,22 +71,10 @@ export default function AdminLocationsPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const url = editingLocation
-      ? `/api/admin/locations/${editingLocation._id}`
-      : '/api/admin/locations';
-      const method = editingLocation ? 'PUT' : 'POST';
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-      });
-      const responseJson = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(responseJson.details || responseJson.error || 'Save failed');
+      if (editingLocation) {
+        await updateLocation({ id: editingLocation._id, data: formData });
+      } else {
+        await createLocation(formData);
       }
 
       setShowModal(false);
@@ -125,7 +86,6 @@ export default function AdminLocationsPage() {
         displayStatus: 'Approved'
       });
       setImagePreview('');
-      fetchLocations();
     } catch (err) {
       console.error('Save failed:', err);
     }

@@ -1,16 +1,20 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { useUserQuery, useLogoutMutation } from '../hooks/auth/useAuth';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    try {
-      const saved = localStorage.getItem('user');
-      return saved ? JSON.parse(saved) : null;
-    } catch {
-      return null;
+  const { data: serverUser, isLoading } = useUserQuery();
+  const logoutMutation = useLogoutMutation();
+
+  const [user, setUser] = useState(null);
+
+  // Sync user state with React Query's fetched data
+  useEffect(() => {
+    if (serverUser !== undefined) {
+      setUser(serverUser);
     }
-  });
+  }, [serverUser]);
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
@@ -18,28 +22,30 @@ export function AuthProvider({ children }) {
   const closeAuthModal = useCallback(() => setIsAuthModalOpen(false), []);
 
   const login = useCallback((userData) => {
-    localStorage.setItem('user', JSON.stringify(userData));
     setUser(userData);
-    // Dispatch storage event so other components (Navbar) can sync
-    window.dispatchEvent(new Event('storage'));
   }, []);
 
   const loginWithGoogle = useCallback(() => {
-    // Redirect to Google OAuth endpoint via our backend
-    // We assume the backend has a route `/api/auth/google` that handles the OAuth flow
     window.location.href = `/api/auth/google`;
   }, []);
 
   const logout = useCallback(() => {
-    fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).catch(() => {});
-    localStorage.removeItem('user');
+    logoutMutation.mutate();
     setUser(null);
-    window.dispatchEvent(new Event('storage'));
-  }, []);
+  }, [logoutMutation]);
 
   return (
     <AuthContext.Provider
-      value={{ user, isAuthModalOpen, openAuthModal, closeAuthModal, login, loginWithGoogle, logout }}
+      value={{ 
+        user, 
+        isLoading, 
+        isAuthModalOpen, 
+        openAuthModal, 
+        closeAuthModal, 
+        login, 
+        loginWithGoogle, 
+        logout 
+      }}
     >
       {children}
     </AuthContext.Provider>

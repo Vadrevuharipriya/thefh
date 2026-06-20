@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Plus, Minus, ShoppingBag, UtensilsCrossed, Check, Filter, X } from 'lucide-react';
 import axios from 'axios';
@@ -6,6 +6,8 @@ import MenuDishCard from '../../components/MenuDishCard/MenuDishCard';
 import FloatingCartButton from '../../components/FloatingCartButton/FloatingCartButton';
 import { slugify } from '../../utils/slugify';
 import { readCommonCartItems, readCommonCartPlate, writeCartItems, writeCartPlate, COMMON_CART_ORDER_CATEGORY } from '../../utils/cartStorage';
+import { useOccasions, useLocations, useCuisines, useProducts } from '../../hooks/public/useProducts';
+import Loader from '../../components/Common/Loader';
 import './MenuPage.scss';
 
 const VEG_ICON = 'https://www.thefamoushalwai.com/frontEnd/images/veg_icon.png';
@@ -123,13 +125,15 @@ export default function MenuPage() {
   const [selectedOccasion, setSelectedOccasion] = useState('');
   const [selectedPeople, setSelectedPeople] = useState('');
   const [toast, setToast] = useState(null);
-  const [occasions, setOccasions] = useState([]);
-  const [locations, setLocations] = useState([]);
-  const [loadingOccasions, setLoadingOccasions] = useState(true);
-  const [loadingLocations, setLoadingLocations] = useState(true);
-  const [menuSections, setMenuSections] = useState([]); // Fetched from API
-  const [loadingMenu, setLoadingMenu] = useState(true);
-  const [allDishesMap, setAllDishesMap] = useState(() => readCommonCartItems()); // For plate drawer lookup
+
+  const { data: occasions = [], isLoading: loadingOccasions } = useOccasions();
+  const { data: locations = [], isLoading: loadingLocations } = useLocations();
+  const { data: cuisines = [], isLoading: loadingCuisines } = useCuisines();
+  const { data: allProducts = [], isLoading: loadingProducts } = useProducts();
+
+  const loadingMenu = loadingCuisines || loadingProducts;
+
+  const [allDishesMap, setAllDishesMap] = useState(() => readCommonCartItems());
 
   const totalItems = Object.values(plate).reduce((sum, c) => sum + c, 0);
 
@@ -146,116 +150,78 @@ export default function MenuPage() {
     setTimeout(() => setToast(null), 3000);
   }, []);
 
-  // Fetch occasions and locations from API
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [occRes, locRes] = await Promise.all([
-          axios.get('/api/occasions?t=' + Date.now()),
-          axios.get('/api/locations?t=' + Date.now())
-        ]);
-        setOccasions(occRes.data);
-        setLocations(locRes.data);
-      } catch (err) {
-        console.error('Failed to fetch data:', err);
-      } finally {
-        setLoadingOccasions(false);
-        setLoadingLocations(false);
-      }
-    };
-    fetchData();
-  }, []);
-
   // Fetch menu sections and items from API
-  useEffect(() => {
-    const fetchMenuData = async () => {
-      try {
-        // Fetch all cuisines
-        const cuisinesRes = await axios.get('/api/cuisines');
-        const cuisines = cuisinesRes.data;
-        
-        // Fetch all menu items (category: menu_item)
-        const menuItemsRes = await axios.get('/api/products');
-        const allMenuItems = menuItemsRes.data.filter(item => item.category === 'menu_item');
-        
-        // Group menu items by cuisine
-        const itemsByCuisineId = {};
-        allMenuItems.forEach(item => {
-          // Handle both populated and non-populated cuisine
-          // When populate is used, cuisine might be an object or null
-          // When not populated, cuisine is just an ObjectId string
-          let cuisineId;
-          if (item.cuisine?.name) {
-            cuisineId = item.cuisine._id;
-          } else if (typeof item.cuisine === 'string') {
-            cuisineId = item.cuisine;
-          } else {
-            cuisineId = null;
-          }
-          const key = cuisineId || 'uncategorized';
-          if (!itemsByCuisineId[key]) {
-            itemsByCuisineId[key] = [];
-          }
-          itemsByCuisineId[key].push(item);
-        });
-        
-// Build menuSections structure - include all cuisines, even those without items
-        const sections = cuisines.map(cuisine => {
-          // Get items for this cuisine (handle both ObjectId and string comparisons)
-          const cuisineItems = itemsByCuisineId[cuisine._id] || itemsByCuisineId[String(cuisine._id)] || [];
-          const itemsByCategory = {};
-          cuisineItems.forEach(item => {
-            const category = item.menuCategory || 'main'; // default to main if not set
-            if (!itemsByCategory[category]) {
-              itemsByCategory[category] = [];
-            }
-            itemsByCategory[category].push(item);
-          });
-          
-// Build items array for this section
-           const items = [];
-           // Add items for each category that has items
-           Object.keys(itemsByCategory).forEach(category => {
-             itemsByCategory[category].forEach(item => {
-               items.push({
-                 id: item._id,
-                 name: item.name,
-                 image: item.image,
-                 veg: item.vegType === 'Vegetarian',
-                 category: category,
-                 cuisineName: cuisine.name,
-                 menuCategory: category,
-                 price: item.price
-               });
-             });
-           });
-          
-          return {
-            id: slugify(cuisine.name),
-            name: cuisine.name,
-            emoji: categoryEmojis[Object.keys(itemsByCategory)[0]] || '🍽️', // default emoji or first category's emoji
-            items: items
-          };
-        });
-        
-        setMenuSections(sections);
-        
-        // Build flat dish lookup for the plate drawer
-        const newAllDishesMap = {};
-        sections.forEach(section => {
-          section.items.forEach(item => {
-            newAllDishesMap[item.id] = item;
-          });
-        });
-        setAllDishesMap(prev => ({ ...prev, ...newAllDishesMap }));
-      } catch (err) {
-        console.error('Failed to fetch menu data:', err);
-      } finally {
-        setLoadingMenu(false);
+  const menuSections = useMemo(() => {
+    if (!cuisines.length || !allProducts.length) return [];
+
+    const allMenuItems = allProducts.filter(item => item.category === 'menu_item');
+    
+    // Group menu items by cuisine
+    const itemsByCuisineId = {};
+    allMenuItems.forEach(item => {
+      let cuisineId;
+      if (item.cuisine?.name) {
+        cuisineId = item.cuisine._id;
+      } else if (typeof item.cuisine === 'string') {
+        cuisineId = item.cuisine;
+      } else {
+        cuisineId = null;
       }
-    };
-    fetchMenuData();
-  }, []); // Empty deps - run once on mount
+      const key = cuisineId || 'uncategorized';
+      if (!itemsByCuisineId[key]) {
+        itemsByCuisineId[key] = [];
+      }
+      itemsByCuisineId[key].push(item);
+    });
+    
+    // Build menuSections structure
+    const sections = cuisines.map(cuisine => {
+      const cuisineItems = itemsByCuisineId[cuisine._id] || itemsByCuisineId[String(cuisine._id)] || [];
+      const itemsByCategory = {};
+      cuisineItems.forEach(item => {
+        const category = item.menuCategory || 'main';
+        if (!itemsByCategory[category]) {
+          itemsByCategory[category] = [];
+        }
+        itemsByCategory[category].push(item);
+      });
+      
+      const items = [];
+      Object.keys(itemsByCategory).forEach(category => {
+        itemsByCategory[category].forEach(item => {
+          items.push({
+            id: item._id,
+            name: item.name,
+            image: item.image,
+            veg: item.vegType === 'Vegetarian',
+            category: category,
+            cuisineName: cuisine.name,
+            menuCategory: category,
+            price: item.price
+          });
+        });
+      });
+      
+      return {
+        id: slugify(cuisine.name),
+        name: cuisine.name,
+        emoji: categoryEmojis[Object.keys(itemsByCategory)[0]] || '🍽️',
+        items: items
+      };
+    });
+    return sections;
+  }, [cuisines, allProducts]);
+
+  useEffect(() => {
+    if (!menuSections.length) return;
+    const newAllDishesMap = {};
+    menuSections.forEach(section => {
+      section.items.forEach(item => {
+        newAllDishesMap[item.id] = item;
+      });
+    });
+    setAllDishesMap(prev => ({ ...prev, ...newAllDishesMap }));
+  }, [menuSections]);
 
 const getFilteredSectionItems = (section) => section.items.filter(dish => {
     if (activeCategory !== 'all' && dish.category !== activeCategory) return false;
@@ -608,10 +574,7 @@ const getFilteredSectionItems = (section) => section.items.filter(dish => {
       <div className="menu-content">
       <div className="menu-content__inner">
         {loadingMenu ? (
-          <div className="table-loading">
-            <div className="loading-spinner"></div>
-            <p>Loading menu...</p>
-          </div>
+          <Loader />
 ) : (
         menuSections.length === 0 ? (
           <EmptyState />

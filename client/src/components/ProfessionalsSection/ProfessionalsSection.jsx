@@ -1,4 +1,5 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useMemo } from 'react';
+import { useChefs } from '../../hooks/public/useChefs';
 import { Star, Award, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import './ProfessionalsSection.scss';
@@ -70,26 +71,12 @@ function ProfCard({ pro }) {
 export default function ProfessionalsSection() {
   const scrollRef = useRef(null);
 
-  const [professionals, setProfessionals] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { data: chefsData, isLoading: loading } = useChefs();
 
-  useEffect(() => {
-    fetch('/api/chefs')
-      .then((res) => res.json())
-      .then((data) => {
-        setProfessionals(
-          data.filter(
-            (chef) => chef.displayStatus === 'Approved'
-          )
-        );
-      })
-      .catch((err) => {
-        console.error('Failed to load chefs:', err);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
+  const professionals = useMemo(() => {
+    if (!chefsData) return [];
+    return chefsData.filter((chef) => chef.displayStatus === 'Approved');
+  }, [chefsData]);
 
   const scroll = (direction) => {
     if (!scrollRef.current) return;

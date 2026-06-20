@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAdminLogin } from '../../hooks/admin/useAdminAuth';
 import {
   Lock,
   Mail,
@@ -11,13 +12,10 @@ import {
 import './AdminLoginPage.scss';
 
 export default function AdminLoginPage() {
-  const [showPassword, setShowPassword] =
-    useState(false);
-
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-
-  const [loading, setLoading] =
-    useState(false);
+  
+  const { mutateAsync: login, isPending: loading } = useAdminLogin();
 
   const navigate = useNavigate();
 
@@ -40,48 +38,14 @@ export default function AdminLoginPage() {
       return;
     }
 
-    setLoading(true);
-    setError('');
-
     try {
-      const response = await fetch(
-        '/api/admin/login',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type':
-              'application/json'
-          },
-          credentials: 'include',
-          body: JSON.stringify({
-            email,
-            password
-          })
-        }
-      );
-
-      const data = await response.json();
-
-      console.log(data);
-
-      if (response.ok) {
-        navigate('/admin/dashboard');
-
-      } else {
-        setError(
-          data.error || 'Login failed'
-        );
-      }
-
+      await login({ email, password });
+      navigate('/admin/dashboard');
     } catch (err) {
       console.error(err);
-
       setError(
-        'Network error. Please try again.'
+        err.response?.data?.error || 'Login failed'
       );
-
-    } finally {
-      setLoading(false);
     }
   };
 

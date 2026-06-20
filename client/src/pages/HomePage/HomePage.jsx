@@ -6,14 +6,11 @@ import CuisinesSection from '../../components/CuisinesSection/CuisinesSection';
 import HowItWorksSection from '../../components/HowItWorksSection/HowItWorksSection';
 import GoogleReviewsSection from '../../components/GoogleReviewsSection/GoogleReviewsSection';
 import CitiesSection from '../../components/CitiesSection/CitiesSection';
-import { initHomeData } from '../../data/homeData';
 import { useEffect } from 'react';
 import './HomePage.scss';
 
 export default function HomePage() {
-  useEffect(() => {
-    initHomeData();
-  }, []);
+
 
   return (
     <main className="home-page">

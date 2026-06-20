@@ -1,93 +1,53 @@
-import { useEffect, useState } from 'react';
-import axios from 'axios';
+import { useAdminMealsCategories, useDeleteAdminMeal, useUpdateAdminMealStatus } from '../../hooks/admin/useAdminMeals';
 import { Link, useNavigate } from 'react-router-dom';
 import AdminSidebar from '../../components/AdminSidebar/AdminSidebar';
 import './AdminMealsPage.scss';
 
 export default function AdminMealsPage() {
-  const [meals, setMeals] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const fetchMeals = async () => {
-    setLoading(true);
-    setError('');
+  const { data: mealsData, isLoading: loading, isError: fetchError, refetch } = useAdminMealsCategories();
+  const { mutateAsync: deleteMeal } = useDeleteAdminMeal();
+  const { mutateAsync: updateStatus } = useUpdateAdminMealStatus();
+
+  const meals = Array.isArray(mealsData) ? mealsData : [];
+
+  const error = fetchError ? 'Failed to fetch meals. Please ensure the server is running.' : '';
+
+  const handleDelete = async (id, name) => {
+    if (!window.confirm(`Are you sure you want to delete "${name}"? This will also delete all its schedules.`)) return;
     try {
-
-      // Fetch only category meals (Breakfast, Lunch, Snacks, Dinner)
-      const res = await axios.get('/api/admin/meals/categories', {
-      });
-      setMeals(res.data);
+      await deleteMeal(id);
+      alert('Meal deleted successfully');
     } catch (err) {
-      setError('Failed to fetch meals. Please ensure the server is running.');
-      console.error('Fetch error:', err);
+      console.error('Failed to delete:', err);
+      const msg = err.response?.data?.error || 'Failed to delete meal';
+      alert(msg);
     }
-    setLoading(false);
   };
-
-   const handleDelete = async (id, name) => {
-     if (!confirm(`Are you sure you want to delete "${name}"? This will also delete all its schedules.`)) return;
-     try {
-
-       await axios.delete(`/api/admin/meals/${id}`, {
-       });
-       setMeals(meals.filter(m => m._id !== id));
-       alert('Meal deleted successfully');
-     } catch (err) {
-       console.error('Failed to delete:', err);
-       const msg = err.response?.data?.error || 'Failed to delete meal';
-       alert(msg);
-     }
-   };
 
     const handleViewSchedules = (mealId, mealName) => {
       navigate(`/admin/meals/${mealId}/schedule`);
     };
 
    const handleStatusChange = async (id, currentStatus) => {
-     // Validation
      if (!id) {
-       console.error('No meal ID provided');
        alert('Error: Meal ID is missing');
        return;
      }
      const newStatus = currentStatus === 'Approved' ? 'Pending' : 'Approved';
-     console.log(`[Status Change] Meal ID: ${id}, Current: ${currentStatus}, New: ${newStatus}`);
      
      try {
-
-       
-       const url = `/api/admin/meals/${id}`;
-       console.log('[Status Change] PUT', url, { displayStatus: newStatus });
-       
-       const response = await axios.put(url, { displayStatus: newStatus }, {
-         headers: { 
-           'Content-Type': 'application/json'
-         }
-       });
-       
-       console.log('[Status Change] Success:', response.data);
-       setMeals(meals.map(m =>
-         m._id === id ? { ...m, displayStatus: newStatus } : m
-       ));
+       await updateStatus({ id, status: newStatus });
      } catch (err) {
        console.error('[Status Change] Full error object:', err);
-       const statusCode = err.response?.status;
        const data = err.response?.data;
-       console.error('[Status Change] Response status:', statusCode);
-       console.error('[Status Change] Response data:', data);
-       
        let msg = 'Failed to update status';
        if (data?.error) msg = data.error;
        if (data?.details) msg += ' - ' + data.details;
        alert(msg);
      }
    };
-
-    useEffect(() => {
-      fetchMeals();
-    }, []);
 
   return (
     <div className="admin-meals-page-container">
@@ -109,7 +69,7 @@ export default function AdminMealsPage() {
                 <div className="table-empty-icon">⚠️</div>
                 <h4>Error loading data</h4>
                 <p>{error}</p>
-                <button onClick={fetchMeals} className="btn btn-primary" style={{marginTop: '1rem'}}>Retry</button>
+                <button onClick={() => refetch()} className="btn btn-primary" style={{marginTop: '1rem'}}>Retry</button>
               </div>
             )}
 

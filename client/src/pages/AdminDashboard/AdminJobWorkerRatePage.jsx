@@ -1,15 +1,13 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import { Search, Edit, Trash2, Eye, X, Plus, ArrowUpDown } from 'lucide-react';
+import { useAdminJobWorkerRates, useCreateJobWorkerRate, useUpdateJobWorkerRate, useDeleteJobWorkerRate } from '../../hooks/admin/useAdminJobWorkerRate';
 import PropTypes from 'prop-types';
 import AdminSidebar from '../../components/AdminSidebar/AdminSidebar';
-import axios from 'axios';
 import './AdminJobWorkerRatePage.scss';
 
 const STATUS_OPTIONS = ['Approved', 'Pending'];
 
 export default function AdminJobWorkerRatePage() {
-  const [rates, setRates] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [showModal, setShowModal] = useState(false);
@@ -21,26 +19,19 @@ export default function AdminJobWorkerRatePage() {
   });
   const [error, setError] = useState('');
 
-  const fetchRates = useCallback(async () => {
-    try {
-      setLoading(true);
-      const params = new URLSearchParams();
-      if (search) params.set('search', search);
-      if (statusFilter) params.set('status', statusFilter);
-      const res = await axios.get(`/api/admin/job-worker-rates?${params}`, {
-      });
-      setRates(res.data || []);
-    } catch (err) {
-      console.error('Failed to fetch rates:', err);
-      setError('Failed to fetch rates. Please ensure the server is running.');
-    } finally {
-      setLoading(false);
-    }
+  const queryParams = useMemo(() => {
+    const p = {};
+    if (search) p.search = search;
+    if (statusFilter) p.status = statusFilter;
+    return p;
   }, [search, statusFilter]);
 
-  useEffect(() => {
-    fetchRates();
-  }, [fetchRates]);
+  const { data: ratesData, isLoading: loading } = useAdminJobWorkerRates(queryParams);
+  const { mutateAsync: createRate } = useCreateJobWorkerRate();
+  const { mutateAsync: updateRate } = useUpdateJobWorkerRate();
+  const { mutateAsync: deleteRate } = useDeleteJobWorkerRate();
+
+  const rates = Array.isArray(ratesData) ? ratesData : [];
 
   // ── Open Edit Modal ────────────────────────────────────────────────────
   const handleEdit = (rate) => {
@@ -73,15 +64,10 @@ export default function AdminJobWorkerRatePage() {
         displayStatus: formData.displayStatus,
       };
 
-      let res;
       if (editingRate) {
-        res = await axios.put(`/api/admin/job-worker-rates/${editingRate._id}`, body, {
-        });
-        setRates(rates.map(r => (r._id === editingRate._id ? res.data : r)));
+        await updateRate({ id: editingRate._id, data: body });
       } else {
-        res = await axios.post(`/api/admin/job-worker-rates`, body, {
-        });
-        fetchRates();
+        await createRate(body);
       }
       setShowModal(false);
       setEditingRate(null);
@@ -93,30 +79,23 @@ export default function AdminJobWorkerRatePage() {
 
   // ── Delete ─────────────────────────────────────────────────────────────
   const handleDelete = async (rate) => {
-    if (!confirm(`Delete "${rate.title}"?`)) return;
+    if (!window.confirm(`Delete "${rate.title}"?`)) return;
     try {
-      await axios.delete(`/api/admin/job-worker-rates/${rate._id}`, {
-      });
-      setRates(rates.filter(r => r._id !== rate._id));
+      await deleteRate(rate._id);
     } catch (err) {
       console.error('Delete error:', err);
     }
   };
 
   // ── Quick Status Toggle ─────────────────────────────────────────────────
-  const cycleStatus = (rate) => {
+  const cycleStatus = async (rate) => {
     const idx = STATUS_OPTIONS.indexOf(rate.displayStatus || 'Pending');
     const next = STATUS_OPTIONS[(idx + 1) % STATUS_OPTIONS.length];
-    setRates(
-      rates.map(r => (r._id === rate._id ? { ...r, displayStatus: next } : r))
-    );
-    // Persist
-    axios
-      .put(
-        `/api/admin/job-worker-rates/${rate._id}`,
-        { displayStatus: next },
-      )
-      .catch(console.error);
+    try {
+      await updateRate({ id: rate._id, data: { displayStatus: next } });
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   // ── Sort helpers ───────────────────────────────────────────────────────

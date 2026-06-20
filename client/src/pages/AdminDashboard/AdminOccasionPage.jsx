@@ -1,49 +1,38 @@
-import { useEffect, useState } from 'react';
-import axios from 'axios';
+import { useState } from 'react';
+import { useAdminOccasions, useUpdateAdminOccasionStatus, useDeleteAdminOccasion } from '../../hooks/admin/useAdminOccasions';
 import { Link, useNavigate } from 'react-router-dom';
 import AdminSidebar from '../../components/AdminSidebar/AdminSidebar';
 import './AdminOccasionPage.scss';
 
 export default function AdminOccasionPage() {
-  const [occasions, setOccasions] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [selectedImage, setSelectedImage] = useState(null);
   const navigate = useNavigate();
+
+  const [selectedImage, setSelectedImage] = useState(null);
 
   const getDisplayStatus = (status) => {
     return status === 'Approved' ? 'Enabled' : 'Disabled';
   };
 
-  const fetchOccasions = async () => {
-    setLoading(true);
-    setError('');
-    try {
+  const { data: occasionsData, isLoading: loading, isError: fetchError, error: fetchErrorObj, refetch } = useAdminOccasions();
+  const { mutateAsync: updateStatus } = useUpdateAdminOccasionStatus();
+  const { mutateAsync: deleteOccasion } = useDeleteAdminOccasion();
 
-      const res = await axios.get('/api/admin/occasions', {
-      });
-      setOccasions(res.data);
-    } catch (err) {
-      console.error('Fetch error:', err);
-      if (err.response?.status === 401) {
-        setError('Session expired. Please login again.');
-      } else {
-        setError('Failed to fetch occasions. Please ensure the server is running.');
-      }
+  const occasions = Array.isArray(occasionsData) ? occasionsData : [];
+  let error = '';
+  if (fetchError) {
+    if (fetchErrorObj?.response?.status === 401) {
+      error = 'Session expired. Please login again.';
+    } else {
+      error = 'Failed to fetch occasions. Please ensure the server is running.';
     }
-    setLoading(false);
-  };
+  }
 
    const handleStatusChange = async (id, currentStatus) => {
      const dbStatus = currentStatus === 'Enabled' ? 'Approved' : 'Pending';
      const newDbStatus = dbStatus === 'Approved' ? 'Pending' : 'Approved';
 
      try {
-       await axios.put(`/api/admin/occasions/${id}`, { displayStatus: newDbStatus }, {
-       });
-       setOccasions(occasions.map(o =>
-         o._id === id ? { ...o, displayStatus: newDbStatus } : o
-       ));
+       await updateStatus({ id, status: newDbStatus });
      } catch (err) {
        console.error('Failed to update status:', err);
        alert('Failed to update status');
@@ -51,11 +40,9 @@ export default function AdminOccasionPage() {
    };
 
    const handleDelete = async (id, name) => {
-     if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
+     if (!window.confirm(`Are you sure you want to delete "${name}"?`)) return;
      try {
-       await axios.delete(`/api/admin/occasions/${id}`, {
-       });
-       setOccasions(occasions.filter(o => o._id !== id));
+       await deleteOccasion(id);
        alert('Deleted successfully');
      } catch (err) {
        console.error('Failed to delete:', err);
@@ -78,10 +65,7 @@ export default function AdminOccasionPage() {
     setSelectedImage(null);
   };
 
-  useEffect(() => {
 
-    fetchOccasions();
-  }, [navigate]);
 
   return (
     <div className="admin-occasion-page-container">
@@ -105,7 +89,7 @@ export default function AdminOccasionPage() {
                 <div className="table-empty-icon">⚠️</div>
                 <h4>Error loading data</h4>
                 <p>{error}</p>
-                <button onClick={fetchOccasions} className="btn btn-primary" style={{marginTop: '1rem'}}>Retry</button>
+                <button onClick={() => refetch()} className="btn btn-primary" style={{marginTop: '1rem'}}>Retry</button>
               </div>
             )}
 

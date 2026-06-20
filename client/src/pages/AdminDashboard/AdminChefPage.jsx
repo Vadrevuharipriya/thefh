@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Upload } from 'lucide-react';
-import axios from 'axios';
+import { apiClient } from '../../utils/axiosInstance';
+import { useCreateChef } from '../../hooks/admin/useAdminChef';
 import AdminSidebar from '../../components/AdminSidebar/AdminSidebar';
 import './AdminChefPage.scss';
 
@@ -42,7 +43,7 @@ export default function AdminChefPage() {
     aadhaarFrontUrl: '',
     aadhaarBackUrl: ''
   });
-  const [loading, setLoading] = useState(false);
+  const createChef = useCreateChef();
   const [error, setError] = useState('');
 
   const handleChange = (event) => {
@@ -65,8 +66,9 @@ export default function AdminChefPage() {
 
     try {
       setError('');
-      const res = await axios.post('/api/admin/upload', uploadData, {
+      const res = await apiClient.post('/admin/upload', uploadData, {
         headers: {
+          'Content-Type': 'multipart/form-data'
         }
       });
       setForm(prev => ({ ...prev, [targetField]: res.data.url || '' }));
@@ -79,7 +81,6 @@ export default function AdminChefPage() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError('');
-    setLoading(true);
 
     const payload = {
       name: form.name,
@@ -109,16 +110,11 @@ export default function AdminChefPage() {
     };
 
     try {
-      await axios.post('/api/admin/chefs', payload, {
-        headers: {
-        }
-      });
+      await createChef.mutateAsync(payload);
       navigate('/admin/dashboard');
     } catch (err) {
       console.error('Save chef error', err);
       setError(err.response?.data?.error || 'Failed to register chef');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -398,8 +394,8 @@ export default function AdminChefPage() {
             <button type="button" className="btn-secondary" onClick={() => navigate('/admin/dashboard')}>
               Cancel
             </button>
-            <button type="submit" className="btn-primary" disabled={loading}>
-              {loading ? 'Registering...' : 'Register Chef'}
+            <button type="submit" className="btn-primary" disabled={createChef.isPending}>
+              {createChef.isPending ? 'Registering...' : 'Register Chef'}
             </button>
           </div>
         </form>

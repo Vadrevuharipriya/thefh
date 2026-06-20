@@ -1,15 +1,13 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import { Search, Edit, Trash2, Eye, X, Plus, ArrowUpDown } from 'lucide-react';
+import { useAdminReferralCodes, useCreateAdminReferralCode, useUpdateAdminReferralCode, useDeleteAdminReferralCode } from '../../hooks/admin/useAdminReferralCode';
 import PropTypes from 'prop-types';
 import AdminSidebar from '../../components/AdminSidebar/AdminSidebar';
-import axios from 'axios';
 import './AdminReferralCodePage.scss';
 
 const STATUS_OPTIONS = ['Active', 'Inactive'];
 
 export default function AdminReferralCodePage() {
-  const [referrals, setReferrals] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [showModal, setShowModal] = useState(false);
@@ -22,26 +20,19 @@ export default function AdminReferralCodePage() {
   });
   const [error, setError] = useState('');
 
-  const fetchReferrals = useCallback(async () => {
-    try {
-      setLoading(true);
-      const params = new URLSearchParams();
-      if (search) params.set('search', search);
-      if (statusFilter) params.set('status', statusFilter);
-      const res = await axios.get(`/api/admin/referral-codes?${params}`, {
-      });
-      setReferrals(res.data || []);
-    } catch (err) {
-      console.error('Failed to fetch referrals:', err);
-      setError('Failed to fetch referrals. Please ensure the server is running.');
-    } finally {
-      setLoading(false);
-    }
+  const queryParams = useMemo(() => {
+    const p = {};
+    if (search) p.search = search;
+    if (statusFilter) p.status = statusFilter;
+    return p;
   }, [search, statusFilter]);
 
-  useEffect(() => {
-    fetchReferrals();
-  }, [fetchReferrals]);
+  const { data: referralsData, isLoading: loading } = useAdminReferralCodes(queryParams);
+  const { mutateAsync: createReferralCode } = useCreateAdminReferralCode();
+  const { mutateAsync: updateReferralCode } = useUpdateAdminReferralCode();
+  const { mutateAsync: deleteReferralCode } = useDeleteAdminReferralCode();
+
+  const referrals = Array.isArray(referralsData) ? referralsData : [];
 
   // ── Open Edit Modal ────────────────────────────────────────────────────
   const handleEdit = (referral) => {
@@ -77,15 +68,10 @@ export default function AdminReferralCodePage() {
         displayStatus: formData.displayStatus,
       };
 
-      let res;
       if (editingReferral) {
-        res = await axios.put(`/api/admin/referral-codes/${editingReferral._id}`, body, {
-        });
-        setReferrals(referrals.map(r => (r._id === editingReferral._id ? res.data : r)));
+        await updateReferralCode({ id: editingReferral._id, data: body });
       } else {
-        res = await axios.post(`/api/admin/referral-codes`, body, {
-        });
-        fetchReferrals();
+        await createReferralCode(body);
       }
       setShowModal(false);
       setEditingReferral(null);
@@ -97,30 +83,23 @@ export default function AdminReferralCodePage() {
 
   // ── Delete ─────────────────────────────────────────────────────────────
   const handleDelete = async (referral) => {
-    if (!confirm(`Delete referral code "${referral.referralCode}"?`)) return;
+    if (!window.confirm(`Delete referral code "${referral.referralCode}"?`)) return;
     try {
-      await axios.delete(`/api/admin/referral-codes/${referral._id}`, {
-      });
-      setReferrals(referrals.filter(r => r._id !== referral._id));
+      await deleteReferralCode(referral._id);
     } catch (err) {
       console.error('Delete error:', err);
     }
   };
 
   // ── Quick Status Toggle ─────────────────────────────────────────────────
-  const cycleStatus = (referral) => {
+  const cycleStatus = async (referral) => {
     const idx = STATUS_OPTIONS.indexOf(referral.displayStatus || 'Inactive');
     const next = STATUS_OPTIONS[(idx + 1) % STATUS_OPTIONS.length];
-    setReferrals(
-      referrals.map(r => (r._id === referral._id ? { ...r, displayStatus: next } : r))
-    );
-    // Persist
-    axios
-      .put(
-        `/api/admin/referral-codes/${referral._id}`,
-        { displayStatus: next },
-      )
-      .catch(console.error);
+    try {
+      await updateReferralCode({ id: referral._id, data: { displayStatus: next } });
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   // ── Sort helpers ───────────────────────────────────────────────────────

@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
-import axios from 'axios';
+import { useState } from 'react';
+import { useAdminBanners, useCreateBanner, useUpdateBanner, useDeleteBanner } from '../../hooks/admin/useAdminBanner';
+import { apiClient } from '../../utils/axiosInstance';
 import { Link } from 'react-router-dom';
 import {
   Plus, Edit2, Trash2, Eye, ImageOff, Tag, Bold as BoldIcon, Trash
@@ -8,8 +9,6 @@ import AdminSidebar from '../../components/AdminSidebar/AdminSidebar';
 import './AdminBannerPage.scss';
 
 export default function AdminBannerPage() {
-  const [banners, setBanners] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [preview, setPreview] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -28,79 +27,30 @@ export default function AdminBannerPage() {
     displayStatus: 'Approved'
   });
 
-   const fetchBanners = async () => {
-     setLoading(true);
-     setError('');
-     try {
-      const res = await axios.get('/api/admin/banners', {
-       });
-       setBanners(res.data);
-     } catch (err) {
-       console.error('Fetch banners failed:', err);
-       if (err.response) {
-         console.error('Response data:', err.response.data);
-         console.error('Response status:', err.response.status);
-         setError(`Failed to fetch banners: ${err.response.data.error || err.response.statusText}`);
-       } else if (err.request) {
-         console.error('No response received:', err.request);
-         setError('No response from server. Please check if the server is running.');
-       } else {
-         setError('Failed to fetch banners. Please check console for details.');
-       }
-     }
-     setLoading(false);
-   };
-
-  useEffect(() => {
-    fetchBanners();
-  }, []);
+  const { data: banners = [], isLoading: loading, isError, refetch } = useAdminBanners();
+  const createBanner = useCreateBanner();
+  const updateBanner = useUpdateBanner();
+  const deleteBanner = useDeleteBanner();
 
   const bannerHeading = (b) => [b.tag, b.title, b.titleAccent].filter(Boolean).join(' ');
 
    const handleStatusToggle = async (banner) => {
      const newStatus = banner.displayStatus === 'Approved' ? 'Pending' : 'Approved';
      try {
-       await axios.put(`/api/admin/banners/${banner._id}`, { displayStatus: newStatus }, {
-       });
-      await fetchBanners();
-      // notify other tabs/clients to refresh public banners
-      try { localStorage.setItem('bannersUpdated', String(Date.now())); } catch (e) { /* ignore */ }
-      try { window.dispatchEvent(new Event('bannersUpdated')); } catch (e) { /* ignore */ }
+       await updateBanner.mutateAsync({ id: banner._id, data: { displayStatus: newStatus } });
      } catch (err) {
        console.error('Status update failed:', err);
-       if (err.response) {
-         console.error('Response data:', err.response.data);
-         console.error('Response status:', err.response.status);
-         setError(`Status update failed: ${err.response.data.error || err.response.statusText}`);
-       } else if (err.request) {
-         console.error('No response received:', err.request);
-         setError('No response from server. Please check if the server is running.');
-       } else {
-         setError('Status update failed. Please check console for details.');
-       }
+       setError('Status update failed. Please check console for details.');
      }
    };
 
    const handleDelete = async (id, name) => {
      if (!confirm(`Delete banner "${name}"?`)) return;
      try {
-       await axios.delete(`/api/admin/banners/${id}`, {
-       });
-      await fetchBanners();
-      try { localStorage.setItem('bannersUpdated', String(Date.now())); } catch (e) { /* ignore */ }
-      try { window.dispatchEvent(new Event('bannersUpdated')); } catch (e) { /* ignore */ }
+       await deleteBanner.mutateAsync(id);
      } catch (err) {
        console.error('Delete failed:', err);
-       if (err.response) {
-         console.error('Response data:', err.response.data);
-         console.error('Response status:', err.response.status);
-         setError(`Delete failed: ${err.response.data.error || err.response.statusText}`);
-       } else if (err.request) {
-         console.error('No response received:', err.request);
-         setError('No response from server. Please check if the server is running.');
-       } else {
-         setError('Delete failed. Please check console for details.');
-       }
+       setError('Delete failed. Please check console for details.');
      }
    };
 
@@ -118,8 +68,9 @@ export default function AdminBannerPage() {
     formDataUpload.append('image', file);
 
     try {
-      const res = await axios.post('/api/admin/upload', formDataUpload, {
+      const res = await apiClient.post('/admin/upload', formDataUpload, {
         headers: {
+          'Content-Type': 'multipart/form-data'
         }
       });
       setFormData({ ...formData, image: res.data.url });
@@ -173,30 +124,16 @@ export default function AdminBannerPage() {
      try {
        const body = { ...formData };
        if (editingBanner) {
-         await axios.put(`/api/admin/banners/${editingBanner._id}`, body, {
-         });
+         await updateBanner.mutateAsync({ id: editingBanner._id, data: body });
        } else {
-         await axios.post(`/api/admin/banners`, body, {
-         });
+         await createBanner.mutateAsync(body);
        }
        setShowForm(false);
        setEditingBanner(null);
        resetForm();
-      await fetchBanners();
-      try { localStorage.setItem('bannersUpdated', String(Date.now())); } catch (e) { /* ignore */ }
-      try { window.dispatchEvent(new Event('bannersUpdated')); } catch (e) { /* ignore */ }
      } catch (err) {
        console.error('Save failed:', err);
-       if (err.response) {
-         console.error('Response data:', err.response.data);
-         console.error('Response status:', err.response.status);
-         setError(`Server error: ${err.response.data.error || err.response.statusText}`);
-       } else if (err.request) {
-         console.error('No response received:', err.request);
-         setError('No response from server. Please check if the server is running.');
-       } else {
-         setError('Failed to save banner. Please check console for details.');
-       }
+       setError('Failed to save banner. Please check console for details.');
      }
    };
 
@@ -217,10 +154,10 @@ export default function AdminBannerPage() {
             <span className="count-badge">{banners.length} banners</span>
           </div>
 
-          {error && (
+          {(error || isError) && (
             <div className="table-empty">
-              <p>{error}</p>
-              <button onClick={fetchBanners} className="btn btn-primary" style={{ marginTop: '1rem' }}>Retry</button>
+              <p>{error || 'Failed to load banners.'}</p>
+              <button onClick={() => refetch()} className="btn btn-primary" style={{ marginTop: '1rem' }}>Retry</button>
             </div>
           )}
 

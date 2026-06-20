@@ -1,4 +1,5 @@
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { useAdminLogout } from '../../hooks/admin/useAdminAuth';
 import {
   LayoutDashboard,
   Package,
@@ -61,6 +62,7 @@ function AdminSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const navRef = useRef(null);
+  const { mutateAsync: logout } = useAdminLogout();
 
   useEffect(() => {
     const newOpenState = {};
@@ -118,7 +120,11 @@ function AdminSidebar() {
   };
 
   const handleLogout = async () => {
-    await fetch('/api/admin/logout', { method: 'POST' }).catch(() => {});
+    try {
+      await logout();
+    } catch (err) {
+      // Ignore
+    }
     localStorage.removeItem('adminSidebarScroll');
     navigate('/admin/login');
   };

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, Mail, Lock, Eye, EyeOff, AlertCircle, User } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLoginMutation, useSignupMutation } from '../../hooks/auth/useAuth';
 import './AuthModal.scss';
 
 export default function AuthModal() {
@@ -45,6 +46,9 @@ export default function AuthModal() {
     if (e.target === overlayRef.current) closeAuthModal();
   };
 
+  const { mutateAsync: loginMutation } = useLoginMutation();
+  const { mutateAsync: signupMutation } = useSignupMutation();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -56,20 +60,12 @@ export default function AuthModal() {
 
     if (isLogin) {
       try {
-        const response = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password }),
-        });
-        const data = await response.json();
-        if (response.ok) {
-          closeAuthModal();
-          navigate('/account');
-        } else {
-          setError(data.error || data.details || 'Login failed. Please try again.');
-        }
-      } catch {
-        setError('Unable to connect to server. Please check your connection.');
+        const data = await loginMutation({ email, password });
+        login(data.user || data);
+        closeAuthModal();
+        navigate('/account');
+      } catch (err) {
+        setError(err.response?.data?.error || err.response?.data?.details || 'Login failed. Please try again.');
       }
     } else {
       const name = formData.get('name');
@@ -80,20 +76,12 @@ export default function AuthModal() {
         return;
       }
       try {
-        const response = await fetch('/api/auth/signup', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email, password }),
-        });
-        const data = await response.json();
-        if (response.ok) {
-          closeAuthModal();
-          navigate('/account');
-        } else {
-          setError(data.error || data.details || 'Signup failed. Please try again.');
-        }
-      } catch {
-        setError('Unable to connect to server. Please check your connection.');
+        const data = await signupMutation({ name, email, password });
+        login(data.user || data);
+        closeAuthModal();
+        navigate('/account');
+      } catch (err) {
+        setError(err.response?.data?.error || err.response?.data?.details || 'Signup failed. Please try again.');
       }
     }
     setLoading(false);

@@ -8,7 +8,9 @@ import {
   Linkedin
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useBlog, useBlogs } from '../../hooks/public/useBlogs';
+import { useSubmitEnquiry } from '../../hooks/public/useEnquiry';
+import Loader from '../../components/Common/Loader';
 import './BlogDetailPage.scss';
 
 function mapBlog(b) {
@@ -137,6 +139,8 @@ function RequestCallbackCard() {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  const submitEnquiry = useSubmitEnquiry();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -159,23 +163,12 @@ function RequestCallbackCard() {
         category: 'general'
       };
 
-      const response = await fetch('/api/enquiries/enquiry', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setShowModal(true);
-        setForm({ name: '', mobile: '', email: '', city: '' });
-      } else {
-        setError(data.error || 'Failed to submit. Please try again.');
-      }
+      await submitEnquiry.mutateAsync(payload);
+      setShowModal(true);
+      setForm({ name: '', mobile: '', email: '', city: '' });
     } catch (err) {
       console.error('Form submission error:', err);
-      setError('Failed to submit. Please try again.');
+      setError(err.response?.data?.error || 'Failed to submit. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -302,27 +295,18 @@ function NotFound({ slug }) {
 // ─── Main Page ───────────────────────────────────────────────────────────────────
 export default function BlogDetailPage() {
   const { slug } = useParams();
-  const [post, setPost] = useState(null);
-  const [related, setRelated] = useState([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    setLoading(true);
-    axios.get(`/api/blogs/${slug}`, { params: { _t: Date.now() } })
-      .then(res => {
-        const p = mapBlog(res.data);
-        setPost(p);
-        return axios.get('/api/blogs', { params: { _t: Date.now() } });
-      })
-      .then(res => {
-        const all = (res.data || []).map(mapBlog);
-        setRelated(all.filter(b => b.slug !== slug).slice(0, 4));
-      })
-      .catch(err => {
-        console.error('Failed to fetch blog:', err);
-      })
-      .finally(() => setLoading(false));
-  }, [slug]);
+  const { data: rawPost, isLoading: loadingPost } = useBlog(slug);
+  const { data: rawAllPosts = [], isLoading: loadingAll } = useBlogs();
+
+  const loading = loadingPost || loadingAll;
+
+  const post = rawPost ? mapBlog(rawPost) : null;
+  
+  const related = rawAllPosts
+    .map(mapBlog)
+    .filter(b => b.slug !== slug)
+    .slice(0, 4);
 
   useEffect(() => {
     if (!post) return;
@@ -345,10 +329,8 @@ export default function BlogDetailPage() {
 
   if (loading) {
     return (
-      <div className="blog-detail">
-        <div className="blog-detail__loading">
-          <p>Loading…</p>
-        </div>
+      <div className="blog-detail min-h-screen">
+        <Loader />
       </div>
     );
   }

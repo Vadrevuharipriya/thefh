@@ -3,6 +3,8 @@ import { useState, useMemo, useEffect } from 'react';
 import axios from 'axios';
 import { ArrowLeft, Plus, Minus, Trash2, ShoppingBag } from 'lucide-react';
 import { COMMON_CART_ORDER_CATEGORY, readCommonCartItems, readCommonCartPlate, writeCartItems, writeCartPlate } from '../../utils/cartStorage';
+import { useProducts } from '../../hooks/public/useProducts';
+import Loader from '../../components/Common/Loader';
 import './ViewMenuCartPage.scss';
 
 const VEG_ICON = 'https://www.thefamoushalwai.com/frontEnd/images/veg_icon.png';
@@ -69,6 +71,8 @@ export default function ViewMenuCartPage() {
 
   const plateEntries = Object.entries(plate).filter(([, count]) => count > 0);
 
+  const { data: allProducts = [], isLoading: isLoadingProducts } = useProducts();
+
   useEffect(() => {
     const plateIds = Object.keys(initialPlate);
     if (plateIds.length === 0) {
@@ -76,40 +80,32 @@ export default function ViewMenuCartPage() {
       return;
     }
 
-    const knownPlateIds = Object.keys(initialPlateItems);
     const hasAllItems = plateIds.length > 0 && plateIds.every(id => id in initialPlateItems);
     if (hasAllItems) {
       setAllItemsMap(initialPlateItems);
       return;
     }
 
-    const fetchPlateItems = async () => {
-      try {
-        const requests = plateIds.map(id =>
-          axios.get(`/api/products/${id}`).then(res => ({ id, product: res.data })).catch(() => null)
-        );
-        const results = await Promise.all(requests);
-        const map = {};
-        results.forEach(result => {
-          if (result?.product) {
-            map[result.id] = {
-              id: result.id,
-              name: result.product.name,
-              price: result.product.price,
-              image: result.product.image,
-              veg: result.product.vegType === 'Vegetarian',
+    if (allProducts.length > 0) {
+      const map = { ...initialPlateItems };
+      plateIds.forEach(id => {
+        if (!map[id]) {
+          const product = allProducts.find(p => p._id === id);
+          if (product) {
+            map[id] = {
+              id: product._id,
+              name: product.name,
+              price: product.price,
+              image: product.image,
+              veg: product.vegType === 'Vegetarian',
               type: 'dish'
             };
           }
-        });
-        setAllItemsMap(prev => ({ ...prev, ...map }));
-      } catch (error) {
-        console.error('Failed to load plate items:', error);
-      }
-    };
-
-    fetchPlateItems();
-  }, [initialPlate, initialPlateItems]);
+        }
+      });
+      setAllItemsMap(prev => ({ ...prev, ...map }));
+    }
+  }, [initialPlate, initialPlateItems, allProducts]);
 
   // Calculate Summary
   const summary = useMemo(() => {

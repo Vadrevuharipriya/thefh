@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import {
   ChevronRight, Star, Award, Clock, Heart, Zap, Flame,
   ChefHat, UtensilsCrossed, CalendarDays, Plane, Coffee, BookOpen,
   ArrowRight,
 } from 'lucide-react';
-import axios from 'axios';
+import { useChef } from '../../hooks/public/useChefs';
+import Loader from '../../components/Common/Loader';
 import './ChefDetailPage.scss';
 
 const HERO_IMAGE = 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=1600';
@@ -281,57 +282,24 @@ function BookCTA({ chef }) {
 export default function ChefDetailPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
-  const [chef, setChef] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('About');
 
-  useEffect(() => {
-    const fetchChef = async () => {
-      try {
-        setLoading(true);
-        // First try to get from the admin endpoint (which returns all chefs, including pending)
-        const res = await axios.get('/api/admin/chefs');
-        // Find the chef by slug
-        const found = res.data.find(chef => chef.slug === slug);
-        if (found) {
-          setChef(found);
-        } else {
-          // If not found in admin endpoint, try the public endpoint (only approved)
-          const resPublic = await axios.get(`/api/chefs`);
-          const foundPublic = resPublic.data.find(chef => chef.slug === slug);
-          setChef(foundPublic || null);
-        }
-      } catch (err) {
-        console.error('Failed to fetch chef:', err);
-        setError('Failed to load chef details');
-        setChef(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (slug) {
-      fetchChef();
-    }
-  }, [slug]);
+  const { data: chef, isLoading: loading, error: fetchError } = useChef(slug);
 
   if (loading) {
     return (
-      <div className="chef-detail-page">
-        <div className="cd-not-found">
-          <h2>Loading...</h2>
-        </div>
+      <div className="chef-detail-page min-h-screen">
+        <Loader />
       </div>
     );
   }
 
-  if (error) {
+  if (fetchError) {
     return (
       <div className="chef-detail-page">
         <div className="cd-not-found">
           <h2>Error</h2>
-          <p>{error}</p>
+          <p>{fetchError.message || 'Failed to load chef details'}</p>
           <Link to="/professionals" className="cd-not-found__link">← Back to Professionals</Link>
         </div>
       </div>

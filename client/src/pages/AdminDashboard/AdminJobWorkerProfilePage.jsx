@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useAdminChefById, useAdminFirebaseChefs, useCreateChef, useUpdateChef } from '../../hooks/admin/useAdminChef';
 import { X, ChevronDown } from 'lucide-react';
 import PropTypes from 'prop-types';
 import AdminSidebar from '../../components/AdminSidebar/AdminSidebar';
@@ -90,7 +91,12 @@ export default function AdminJobWorkerProfilePage() {
   const [cuisineDropdownOpen, setCuisineDropdownOpen] = useState(false);
   const cuisineRef = useRef(null);
 
-  const loadWorker = useCallback(async () => {
+  const { data: localChefData, isLoading: loadingLocalChef, isFetching: fetchingLocal } = useAdminChefById(workerId);
+  const { data: firebaseChefsData, isLoading: loadingFirebaseChefs, isFetching: fetchingFirebase } = useAdminFirebaseChefs();
+  const { mutateAsync: createChef } = useCreateChef();
+  const { mutateAsync: updateChef } = useUpdateChef();
+
+  useEffect(() => {
     if (isNew) {
       setWorker(null);
       setFormData(getEmptyForm());
@@ -100,33 +106,24 @@ export default function AdminJobWorkerProfilePage() {
       return;
     }
 
-    setLoading(true);
-    setError('');
-    let found = null;
-
-    try {
-      const res = await axios.get(`/api/admin/chefs/${workerId}`, {
-      });
-      found = normalizeWorker(res.data, 'local');
-    } catch (err) {
-      // Silently continue if local lookup fails
+    if (fetchingLocal || fetchingFirebase) {
+      setLoading(true);
+      return;
     }
 
-    if (!found) {
-      try {
-        const firebaseRes = await axios.get('/api/admin/firebase/chefs', {
-        });
-        const firebaseChefs = firebaseRes.data || [];
-        const raw = firebaseChefs.find((item) => 
-          item.firebaseId === workerId || 
-          item._id === workerId || 
-          item.id === workerId
-        );
-        if (raw) {
-          found = normalizeWorker(raw, 'firebase');
-        }
-      } catch (err) {
-        console.error('Failed to fetch Firebase chefs:', err.response?.data || err.message);
+    let found = null;
+    if (localChefData) {
+      found = normalizeWorker(localChefData, 'local');
+    }
+
+    if (!found && firebaseChefsData) {
+      const raw = firebaseChefsData.find((item) => 
+        item.firebaseId === workerId || 
+        item._id === workerId || 
+        item.id === workerId
+      );
+      if (raw) {
+        found = normalizeWorker(raw, 'firebase');
       }
     }
 
@@ -146,13 +143,10 @@ export default function AdminJobWorkerProfilePage() {
             : [],
       });
       setImagePreview(found.image || '');
+      setError('');
     }
     setLoading(false);
-  }, [workerId]);
-
-  useEffect(() => {
-    loadWorker();
-  }, [loadWorker]);
+  }, [workerId, isNew, localChefData, firebaseChefsData, fetchingLocal, fetchingFirebase]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -313,16 +307,14 @@ export default function AdminJobWorkerProfilePage() {
       };
 
       if (isNew) {
-        const res = await axios.post('/api/admin/chefs', {
+        const res = await createChef({
           ...body,
           slug: `${buildSlug(formData.name)}-${Date.now()}`,
           bio: '',
-        }, {
         });
-        navigate(`/admin/order-inquiry/manage-job-worker/${res.data._id}`);
+        navigate(`/admin/order-inquiry/manage-job-worker/${res._id}`);
       } else {
-        await axios.put(`/api/admin/chefs/${workerId}`, body, {
-        });
+        await updateChef({ id: workerId, data: body });
         setError('Saved successfully.');
       }
     } catch (err) {

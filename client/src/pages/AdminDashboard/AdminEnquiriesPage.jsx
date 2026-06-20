@@ -1,112 +1,41 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useAdminEnquiries, useAdminEnquiriesCounts, useDeleteAdminEnquiry, useUpdateAdminEnquiryStatus } from '../../hooks/admin/useAdminEnquiry';
 import { Search, Trash2, Eye, X, MapPin } from 'lucide-react';
 import AdminSidebar from '../../components/AdminSidebar/AdminSidebar';
 import './AdminEnquiriesPage.scss';
 
 export default function AdminEnquiriesPage() {
-  const [enquiries, setEnquiries] = useState([]);
-  const [counts, setCounts] = useState({ halwai: 0, general: 0, tiffin: 0, venue: 0 });
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [dateFilter, setDateFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedInquiry, setSelectedInquiry] = useState(null);
-  const [updateStatusLoading, setUpdateStatusLoading] = useState(false);
 
   const itemsPerPage = 20;
 
-  const fetchInquiries = useCallback(async () => {
-    setLoading(true);
-    try {
-      console.log('[AdminEnquiriesPage] Fetching all enquiries');
-      const res = await fetch('/api/enquiries', {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      console.log('[AdminEnquiriesPage] Response status:', res.status);
-      const data = await res.json();
-      console.log('[AdminEnquiriesPage] Response data:', JSON.stringify(data));
-      if (res.ok) {
-        setEnquiries(Array.isArray(data) ? data : (data.inquiries || []));
-      } else {
-        console.error('[AdminEnquiriesPage] API error:', data);
-      }
-    } catch (err) {
-      console.error('[AdminEnquiriesPage] Failed to fetch inquiries:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const { data: rawEnquiries, isLoading: enquiriesLoading } = useAdminEnquiries();
+  const { data: counts = { halwai: 0, general: 0, tiffin: 0, venue: 0 } } = useAdminEnquiriesCounts();
+  const deleteEnquiry = useDeleteAdminEnquiry();
+  const updateStatus = useUpdateAdminEnquiryStatus();
 
-  const fetchCounts = useCallback(async () => {
-    try {
-      console.log('[AdminEnquiriesPage] Fetching inquiry counts');
-      const res = await fetch('/api/inquiries/counts', {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      console.log('[AdminEnquiriesPage] Counts response status:', res.status);
-      const data = await res.json();
-      console.log('[AdminEnquiriesPage] Counts response data:', JSON.stringify(data));
-      if (res.ok) {
-        setCounts(data);
-      } else {
-        console.error('[AdminEnquiriesPage] Counts API error:', data);
-      }
-    } catch (err) {
-      console.error('[AdminEnquiriesPage] Failed to fetch counts:', err);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchInquiries();
-    fetchCounts();
-  }, [fetchInquiries, fetchCounts]);
+  const enquiries = Array.isArray(rawEnquiries) ? rawEnquiries : (rawEnquiries?.inquiries || []);
+  const loading = enquiriesLoading;
 
 const handleDelete = async (id) => {
     if (!confirm('Are you sure you want to delete this inquiry?')) return;
     try {
-      const res = await fetch(`/api/admin/enquiries/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      console.log('[AdminEnquiriesPage] Delete response status:', res.status);
-      if (res.ok) {
-        setEnquiries(enquiries.filter(i => i._id !== id));
-      } else {
-        console.error('[AdminEnquiriesPage] Delete failed:', await res.json());
-      }
+      await deleteEnquiry.mutateAsync(id);
     } catch (err) {
       console.error('[AdminEnquiriesPage] Failed to delete inquiry:', err);
     }
   };
 
   const handleStatusUpdate = async (id, status) => {
-    setUpdateStatusLoading(true);
     try {
-      const res = await fetch(`/api/admin/enquiries/${id}/status`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status })
-      });
-      console.log('[AdminEnquiriesPage] Status update response status:', res.status);
-      if (res.ok) {
-        setEnquiries(enquiries.map(i => i._id === id ? { ...i, status } : i));
-      } else {
-        console.error('[AdminEnquiriesPage] Status update failed:', await res.json());
-      }
+      await updateStatus.mutateAsync({ id, status });
     } catch (err) {
       console.error('[AdminEnquiriesPage] Failed to update status:', err);
-    } finally {
-      setUpdateStatusLoading(false);
     }
   };
 
@@ -246,7 +175,7 @@ const handleDelete = async (id) => {
                       <select 
                         value={i.status || 'new'}
                         onChange={(e) => handleStatusUpdate(i._id, e.target.value)}
-                        disabled={updateStatusLoading}
+                        disabled={updateStatus.isPending}
                       >
                         <option value="new">New</option>
                         <option value="in-progress">In Progress</option>

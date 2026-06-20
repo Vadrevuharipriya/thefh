@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Star, Users, MapPin } from 'lucide-react';
-import { getHeroSlides, initHomeData } from '../../data/homeData';
+import { useBanners } from '../../hooks/public/useBanners';
 import './HeroCarousel.scss';
 
 const GOOGLE_LOGO = 'https://www.thefamoushalwai.com/frontEnd/images/g-rating.png';
@@ -12,11 +12,76 @@ const floatingCards = [
   { icon: <MapPin size={16} className="text-blue-400" />, label: 'Cities Served', value: '15+ Cities', color: 'from-blue-500/20 to-cyan-500/10' },
 ];
 
+const fallbackHeroSlides = [
+  {
+    id: 1,
+    tag: 'Banquet & Venue',
+    title: 'Destination',
+    titleAccent: 'Venues',
+    subtitle: 'Luxurious banquet halls & outdoor venues for weddings, corporate galas & grand celebrations.',
+    rating: 4.9,
+    reviews: 1012,
+    image: 'https://images.pexels.com/photos/34079355/pexels-photo-34079355.jpeg',
+    link: '#',
+  },
+  {
+    id: 2,
+    tag: 'Halwai at Home',
+    title: 'Expert Chefs',
+    titleAccent: 'At Your Door',
+    subtitle: 'Verified halwais & professional chefs for any occasion — from pooja to full-scale weddings.',
+    rating: 4.5,
+    reviews: 1440,
+    image: 'https://images.pexels.com/photos/17294714/pexels-photo-17294714.jpeg',
+    link: '#',
+  },
+  {
+    id: 3,
+    tag: 'Catering Services',
+    title: 'Authentic',
+    titleAccent: 'Indian Cuisine',
+    subtitle: 'From North Indian thalis to Continental spreads — curated menus for 15+ occasion types.',
+    rating: 4.9,
+    reviews: 1012,
+    image: 'https://images.pexels.com/photos/5775684/pexels-photo-5775684.jpeg',
+    link: '#',
+  },
+  {
+    id: 4,
+    tag: 'Celebrations',
+    title: 'Unforgettable',
+    titleAccent: 'Celebrations',
+    subtitle: 'Birthday parties, anniversaries, house parties — every event deserves a perfect spread.',
+    rating: 4.9,
+    reviews: 1012,
+    image: 'https://images.pexels.com/photos/30844787/pexels-photo-30844787.jpeg',
+    link: '#',
+  },
+];
+
+function toHeroSlide(b) {
+  return {
+    id: b._id || b.sortOrder,
+    tag: b.tag || '',
+    title: b.title || '',
+    titleAccent: b.titleAccent || '',
+    subtitle: b.subtitle || '',
+    image: b.image || '',
+    rating: b.rating ?? 4.9,
+    reviews: b.reviews ?? 0,
+    link: b.link || '#',
+  };
+}
+
 export default function HeroCarousel() {
-  const [slides, setSlides] = useState(getHeroSlides());
+  const { data: banners, isLoading } = useBanners('Approved');
+  
+  const slides = banners && banners.length > 0 
+    ? banners.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)).map(toHeroSlide)
+    : fallbackHeroSlides;
+
   const [current, setCurrent] = useState(0);
   const navigate = useNavigate();
-  const knownCount = useRef(slides.length);
 
   const goTo = useCallback((index) => {
     setCurrent(index);
@@ -24,45 +89,6 @@ export default function HeroCarousel() {
 
   const next = useCallback(() => goTo((current + 1) % slides.length), [current, goTo, slides.length]);
   const prev = useCallback(() => goTo((current - 1 + slides.length) % slides.length), [current, goTo, slides.length]);
-
-  useEffect(() => {
-    initHomeData();
-  }, []);
-
-  // Listen for admin updates (cross-tab via storage, same-tab via custom event)
-  useEffect(() => {
-    const refresh = () => {
-      initHomeData(true).then(() => {
-        const latest = getHeroSlides();
-        knownCount.current = latest.length;
-        setSlides([...latest]);
-        setCurrent(0);
-      }).catch(() => {});
-    };
-
-    const onStorage = (e) => { if (e.key === 'bannersUpdated') refresh(); };
-    const onCustom = () => refresh();
-
-    window.addEventListener('storage', onStorage);
-    window.addEventListener('bannersUpdated', onCustom);
-    return () => {
-      window.removeEventListener('storage', onStorage);
-      window.removeEventListener('bannersUpdated', onCustom);
-    };
-  }, []);
-
-  // Every 5 s, refresh slides from the shared cache (admin may have changed them).
-  useEffect(() => {
-    const t = setInterval(() => {
-      const latest = getHeroSlides();
-      if (latest.length !== knownCount.current) {
-        knownCount.current = latest.length;
-        setSlides([...latest]);
-        setCurrent(Math.min(current, Math.max(0, latest.length - 1)));
-      }
-    }, 5000);
-    return () => clearInterval(t);
-  }, [current]);
 
   useEffect(() => {
     const t = setInterval(next, 5500);

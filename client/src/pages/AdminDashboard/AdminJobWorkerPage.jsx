@@ -1,33 +1,42 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAdminJobWorkers, useDeleteChef, useUpdateChef } from '../../hooks/admin/useAdminChef';
 import { Search, Eye, Trash2, Plus } from 'lucide-react';
 import PropTypes from 'prop-types';
 import AdminSidebar from '../../components/AdminSidebar/AdminSidebar';
-import axios from 'axios';
 import './AdminJobWorkerPage.scss';
 
 const STATUS_OPTIONS = ['Pending', 'Approved', 'Hold'];
 
 export default function AdminJobWorkerPage() {
   const [workers, setWorkers] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const fetchWorkers = useCallback(async () => {
-    try {
-      setLoading(true);
-      const params = new URLSearchParams();
-      if (search) params.set('search', search);
-      if (statusFilter) params.set('status', statusFilter);
+  const queryParams = useMemo(() => {
+    const p = {};
+    if (search) p.search = search;
+    if (statusFilter) p.status = statusFilter;
+    return p;
+  }, [search, statusFilter]);
 
-      let localData = [];
-      try {
-        const localRes = await axios.get(`/api/admin/chefs/admin?${params}`, {
-        });
-        localData = (localRes.data || []).map((c) => ({
+  const { data: jobWorkersData, isLoading: loading, isError, error: queryError, refetch } = useAdminJobWorkers(queryParams);
+  const { mutateAsync: deleteChef } = useDeleteChef();
+  const { mutateAsync: updateChef } = useUpdateChef();
+
+  useEffect(() => {
+    if (isError) {
+      setError('Failed to fetch workers. Please ensure the server is running.');
+      console.error(queryError);
+    }
+  }, [isError, queryError]);
+
+  useEffect(() => {
+    if (!jobWorkersData) return;
+    try {
+      const localData = (jobWorkersData.local || []).map((c) => ({
           ...c,
           source: 'local',
           cuisines: Array.isArray(c.profile?.cuisines)
@@ -61,18 +70,10 @@ export default function AdminJobWorkerPage() {
           const mobile = c.mobile?.trim();
           return !!(name || email || mobile || c.city || (Array.isArray(c.cuisines) ? c.cuisines.length : 0) || c.events || c.earnings != null);
         });
-      } catch (err) {
-        console.error('Failed to fetch local chefs:', err);
-        setError('Failed to fetch local chefs.');
-      }
-
       let firebaseData = [];
       try {
-        const firebaseRes = await axios.get(`/api/admin/firebase/chefs?${params}`, {
-        });
-
         const localByFirebaseId = new Map(localData.filter((c) => c.firebaseId).map((c) => [c.firebaseId, c]));
-        (firebaseRes.data || []).forEach((f) => {
+        (jobWorkersData.firebase || []).forEach((f) => {
   const local = localByFirebaseId.get(f.firebaseId);
 
   if (local) {
@@ -105,7 +106,7 @@ export default function AdminJobWorkerPage() {
         const localByEmail = new Map(localData.filter((c) => c.email).map((c) => [c.email?.toLowerCase(), c]));
         const localByMobile = new Map(localData.filter((c) => c.mobile).map((c) => [c.mobile, c]));
 
-        firebaseData = (firebaseRes.data || []).map((c) => {
+        firebaseData = (jobWorkersData.firebase || []).map((c) => {
           if ((c.firebaseId && localByFirebaseId.has(c.firebaseId)) ||
               (c.email?.toLowerCase() && localByEmail.has(c.email.toLowerCase())) ||
               (c.mobile && localByMobile.has(c.mobile))) {
@@ -167,16 +168,10 @@ if (!name && !email && !mobile) {
 
       setWorkers(merged);
     } catch (err) {
-      console.error('Failed to fetch workers:', err);
-      setError('Failed to fetch workers. Please ensure the server is running.');
-    } finally {
-      setLoading(false);
+      console.error('Failed to process workers:', err);
+      setError('Failed to process workers.');
     }
-  }, [search, statusFilter]);
-
-  useEffect(() => {
-    fetchWorkers();
-  }, [fetchWorkers]);
+  }, [jobWorkersData, search]);
 
   const handleView = (worker) => {
     navigate(`/admin/order-inquiry/manage-job-worker/${worker._id}`);
@@ -197,23 +192,18 @@ if (!name && !email && !mobile) {
         return;
       }
 
-      const config = {
-      };
-
       try {
-        await axios.delete(`/api/admin/chefs/${id}`, config);
+        await deleteChef(id);
       } catch (err) {
-        if (err.response?.status === 404 || err.response?.status === 401) {
-          await axios.delete(`/api/chefs/${id}`, config);
-        } else {
-          throw err;
-        }
+        console.error('Delete error:', err);
+        setError('Failed to delete worker.');
+        return;
       }
 
       setWorkers((prev) => prev.filter((w) => (w._id || w.id || w.firebaseId) !== id));
-      await fetchWorkers();
+      await refetch();
     } catch (err) {
-      console.error('Delete error:', err.response?.data || err.message || err);
+      console.error('Delete error:', err);
       setError('Failed to delete worker.');
     }
     
@@ -223,9 +213,8 @@ if (!name && !email && !mobile) {
     const index = STATUS_OPTIONS.indexOf(worker.displayStatus);
     const nextStatus = STATUS_OPTIONS[(index + 1) % STATUS_OPTIONS.length];
     try {
-      const res = await axios.put(`/api/admin/chefs/${worker._id}`, { displayStatus: nextStatus }, {
-      });
-      setWorkers((prev) => prev.map((w) => (w._id === worker._id ? { ...w, displayStatus: res.data.displayStatus } : w)));
+      const res = await updateChef({ id: worker._id, data: { displayStatus: nextStatus } });
+      setWorkers((prev) => prev.map((w) => (w._id === worker._id ? { ...w, displayStatus: res.displayStatus } : w)));
     } catch (err) {
       console.error('Failed to update status:', err);
       setError('Failed to update status.');

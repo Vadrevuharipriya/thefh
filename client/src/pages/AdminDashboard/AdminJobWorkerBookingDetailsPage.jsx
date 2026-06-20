@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useAdminChefBookings, useAdminChefById } from '../../hooks/admin/useAdminChef';
 import AdminSidebar from '../../components/AdminSidebar/AdminSidebar';
-import axios from 'axios';
 import './AdminJobWorkerPage.scss';
 
 function formatDateTime(value) {
@@ -19,42 +18,13 @@ function formatDateTime(value) {
 export default function AdminJobWorkerBookingDetailsPage() {
   const { workerId } = useParams();
   const navigate = useNavigate();
-  const [bookings, setBookings] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [workerName, setWorkerName] = useState('');
+  const { data: bookingsData, isLoading: loadingBookings, isError: isBookingsError } = useAdminChefBookings(workerId);
+  const { data: chefData } = useAdminChefById(workerId);
 
-  useEffect(() => {
-    const fetchBookings = async () => {
-      setLoading(true);
-      setError('');
-      try {
-        const res = await axios.get(`/api/admin/firebase/chefs/${workerId}/bookings`, {
-        });
-        setBookings(res.data || []);
-      } catch (err) {
-        console.error('Failed to load bookings:', err.response?.data || err.message || err);
-        setError('Failed to load booking details.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    const fetchChefName = async () => {
-      try {
-        const res = await axios.get(`/api/admin/chefs/${workerId}`, {
-        });
-        setWorkerName(res.data?.name || 'Chef');
-      } catch {
-        setWorkerName('Chef');
-      }
-    };
-
-    if (workerId) {
-      fetchChefName();
-      fetchBookings();
-    }
-  }, [workerId]);
+  const bookings = Array.isArray(bookingsData) ? bookingsData : [];
+  const workerName = chefData?.name || 'Chef';
+  const loading = loadingBookings;
+  const error = isBookingsError ? 'Failed to load booking details.' : '';
 
   return (
     <div className="admin-dashboard admin-job-workers">

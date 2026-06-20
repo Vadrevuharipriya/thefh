@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useProducts } from '../../hooks/public/useProducts';
 import { Link, useNavigate } from 'react-router-dom';
 import { ChevronRight, Check } from 'lucide-react';
 import { COMMON_CART_ORDER_CATEGORY, readCommonCartItems, readCommonCartPlate, writeCartItems, writeCartPlate } from '../../utils/cartStorage';
@@ -52,44 +53,22 @@ function HeroSection() {
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function PicklePage() {
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const { data: serverItems, isLoading: loading, isError, error: queryError } = useProducts();
+  const error = isError ? queryError?.message || 'Failed to fetch pickle items' : '';
   const [plate, setPlate] = useState(() => readCommonCartPlate());
   const [toast, setToast] = useState(null);
   const navigate = useNavigate();
+
+  const items = useMemo(() => {
+    if (!serverItems) return [];
+    return serverItems.filter((product) => product.category === PRODUCT_CATEGORY).map(normalizeProduct);
+  }, [serverItems]);
 
   const totalItems = Object.values(plate).reduce((sum, c) => sum + c, 0);
   const plateItems = useMemo(() => items.reduce((acc, item) => ({
     ...acc,
     [item.id]: { id: item.id, name: item.name, price: item.price, image: item.image, type: 'dish' }
   }), {}), [items]);
-
-  useEffect(() => {
-    const controller = new AbortController();
-
-    const fetchItems = async () => {
-      try {
-        setLoading(true);
-        setError('');
-        const res = await fetch('/api/products', { signal: controller.signal });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data?.error || 'Failed to fetch pickle items');
-        setItems(data.filter((product) => product.category === PRODUCT_CATEGORY).map(normalizeProduct));
-      } catch (err) {
-        if (err.name !== 'AbortError') {
-          setError(err.message || 'Failed to fetch pickle items');
-          console.error('Failed to fetch pickle items:', err);
-        }
-      } finally {
-        if (!controller.signal.aborted) setLoading(false);
-      }
-    };
-
-    fetchItems();
-
-    return () => controller.abort();
-  }, []);
 
   const showToast = useCallback((message) => {
     setToast(message);

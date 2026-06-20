@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
+import { useOrderInquiriesByCategory, useDeleteOrderInquiry, useUpdateOrderInquiryStatus } from '../../hooks/admin/useAdminEnquiry';
 import PropTypes from 'prop-types';
 import { Search, Trash2, Eye, X, CheckCircle, Clock } from 'lucide-react';
 import AdminSidebar from '../../components/AdminSidebar/AdminSidebar';
@@ -7,14 +8,11 @@ import './AdminEnquiriesPage.scss';
 const FOOD_ORDER_CATEGORIES = ['customized-plate', 'bhaji-orders', 'chutney-pickle'];
 
 export default function AdminOrderInquiryCategoryPage({ category }) {
-  const [inquiries, setInquiries] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [dateFilter, setDateFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedInquiry, setSelectedInquiry] = useState(null);
-  const [updateStatusLoading, setUpdateStatusLoading] = useState(false);
 
   const itemsPerPage = 20;
   const categoryLabels = {
@@ -23,76 +21,26 @@ export default function AdminOrderInquiryCategoryPage({ category }) {
     'chutney-pickle': 'Chutney Pickle / Achhar Orders'
   };
 
-  const fetchInquiries = useCallback(async () => {
-    setLoading(true);
-    try {
-      console.log('[AdminOrderInquiryCategoryPage] Fetching order inquiries for category:', category);
-      console.log(
-                  );
-      const res = await fetch(`/api/inquiries/category/${category}`, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      console.log('[AdminOrderInquiryCategoryPage] Response status:', res.status);
-      const data = await res.json();
-      console.log('[AdminOrderInquiryCategoryPage] Response data:', JSON.stringify(data));
-      if (res.ok) {
-        setInquiries(Array.isArray(data) ? data : (data.inquiries || []));
-      } else {
-        console.error('[AdminOrderInquiryCategoryPage] API error:', data);
-      }
-    } catch (err) {
-      console.error('[AdminOrderInquiryCategoryPage] Failed to fetch inquiries:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [category]);
+  const { data: rawInquiries, isLoading: loading } = useOrderInquiriesByCategory(category);
+  const deleteInquiry = useDeleteOrderInquiry();
+  const updateStatus = useUpdateOrderInquiryStatus();
 
-  useEffect(() => {
-    fetchInquiries();
-  }, [fetchInquiries]);
+  const inquiries = Array.isArray(rawInquiries) ? rawInquiries : (rawInquiries?.inquiries || []);
 
   const handleDelete = async (id) => {
     if (!confirm('Are you sure you want to delete this inquiry?')) return;
     try {
-      const res = await fetch(`/api/order-inquiry/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      console.log('[AdminOrderInquiryCategoryPage] Delete response status:', res.status);
-      if (res.ok) {
-        setInquiries(inquiries.filter(i => i._id !== id));
-      } else {
-        console.error('[AdminOrderInquiryCategoryPage] Delete failed:', await res.json());
-      }
+      await deleteInquiry.mutateAsync(id);
     } catch (err) {
       console.error('[AdminOrderInquiryCategoryPage] Failed to delete inquiry:', err);
     }
   };
 
   const handleStatusUpdate = async (id, status) => {
-    setUpdateStatusLoading(true);
     try {
-      const res = await fetch(`/api/order-inquiry/${id}/status`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status })
-      });
-      console.log('[AdminOrderInquiryCategoryPage] Status update response status:', res.status);
-      if (res.ok) {
-        setInquiries(inquiries.map(i => i._id === id ? { ...i, status } : i));
-      } else {
-        console.error('[AdminOrderInquiryCategoryPage] Status update failed:', await res.json());
-      }
+      await updateStatus.mutateAsync({ id, status });
     } catch (err) {
       console.error('[AdminOrderInquiryCategoryPage] Failed to update status:', err);
-    } finally {
-      setUpdateStatusLoading(false);
     }
   };
 
@@ -230,7 +178,7 @@ export default function AdminOrderInquiryCategoryPage({ category }) {
                       <select 
                         value={i.status || 'new'}
                         onChange={(e) => handleStatusUpdate(i._id, e.target.value)}
-                        disabled={updateStatusLoading}
+                        disabled={updateStatus.isPending}
                       >
                         <option value="new">New</option>
                         <option value="in-progress">In Progress</option>

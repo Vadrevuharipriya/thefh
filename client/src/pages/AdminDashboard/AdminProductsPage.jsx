@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useAdminProducts, useCuisines, useCreateAdminProduct, useUpdateAdminProduct, useDeleteAdminProduct } from '../../hooks/admin/useAdminProduct';
 import axios from 'axios';
 import AdminSidebar from '../../components/AdminSidebar/AdminSidebar';
 import { Plus, Edit, Trash2, Search, Trash } from 'lucide-react';
@@ -14,9 +15,6 @@ const CATEGORIES = [
 
 export default function AdminProductsPage() {
   const location = useLocation();
-  const [products, setProducts] = useState([]);
-  const [cuisines, setCuisines] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -34,6 +32,15 @@ export default function AdminProductsPage() {
     featured: false
   });
 
+  const { data: productsData, isLoading: loading } = useAdminProducts();
+  const { data: cuisinesData } = useCuisines();
+  const { mutateAsync: createProduct } = useCreateAdminProduct();
+  const { mutateAsync: updateProduct } = useUpdateAdminProduct();
+  const { mutateAsync: deleteProduct } = useDeleteAdminProduct();
+
+  const products = Array.isArray(productsData) ? productsData : [];
+  const cuisines = Array.isArray(cuisinesData) ? cuisinesData : [];
+
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const queryCategory = params.get('category');
@@ -46,40 +53,7 @@ export default function AdminProductsPage() {
         setFormData((prev) => ({ ...prev, cuisine: queryCuisine }));
       }
     }
-
-    fetchProducts();
-    fetchCuisines();
   }, [location.search]);
-
-  const fetchProducts = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch('/api/admin/products', {
-        headers: {
-        }
-      });
-      const data = await res.json().catch(() => null);
-      if (!res.ok) {
-        throw new Error(data?.details || data?.error || 'Failed to fetch products');
-      }
-      setProducts(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error('Failed to fetch products:', err);
-      setProducts([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchCuisines = async () => {
-    try {
-      const res = await fetch('/api/cuisines');
-      const data = await res.json();
-      setCuisines(data);
-    } catch (err) {
-      console.error('Failed to fetch cuisines:', err);
-    }
-  };
 
   const filteredProducts = products.filter((p) => {
     const category = String(p.category || '').toLowerCase();
@@ -98,14 +72,9 @@ export default function AdminProductsPage() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this product?')) return;
+    if (!window.confirm('Are you sure you want to delete this product?')) return;
     try {
-      await fetch(`/api/admin/products/${id}`, {
-        method: 'DELETE',
-        headers: {
-        }
-      });
-      fetchProducts();
+      await deleteProduct(id);
     } catch (err) {
       console.error('Delete failed:', err);
     }
@@ -167,26 +136,13 @@ export default function AdminProductsPage() {
     const payload = buildProductPayload(formData);
 
     try {
-      const url = editingProduct
-        ? `/api/admin/products/${editingProduct._id}`
-        : '/api/admin/products';
-      const method = editingProduct ? 'PUT' : 'POST';
-
-      const res = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload)
-      });
-      const responseJson = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
-        console.error('Product save failed:', { status: res.status, payload, response: responseJson });
-        throw new Error(responseJson.details || responseJson.error || 'Failed to save product');
+      let savedProduct;
+      if (editingProduct) {
+        savedProduct = await updateProduct({ id: editingProduct._id, data: payload });
+      } else {
+        savedProduct = await createProduct(payload);
       }
 
-      const savedProduct = responseJson;
       if (savedProduct?.category && savedProduct.category !== activeCategory) {
         setActiveCategory(savedProduct.category);
       }
@@ -206,7 +162,6 @@ export default function AdminProductsPage() {
         featured: false
       });
       setImagePreview('');
-      fetchProducts();
     } catch (err) {
       console.error('Save failed:', err);
     }

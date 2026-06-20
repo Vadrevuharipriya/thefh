@@ -1,42 +1,22 @@
-import { useEffect, useState } from 'react';
-import axios from 'axios';
+import { useAdminServices, useUpdateAdminServiceStatus, useDeleteAdminService } from '../../hooks/admin/useAdminServices';
 import { Link, useNavigate } from 'react-router-dom';
 import AdminSidebar from '../../components/AdminSidebar/AdminSidebar';
 import './AdminServicesPage.scss';
 
 export default function AdminServicesPage() {
-  const [services, setServices] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const navigate = useNavigate();
 
-   const fetchServices = async () => {
-     setLoading(true);
-     setError('');
-     try {
+  const { data: servicesData, isLoading: loading, isError: fetchError, refetch } = useAdminServices();
+  const { mutateAsync: updateStatus } = useUpdateAdminServiceStatus();
+  const { mutateAsync: deleteService } = useDeleteAdminService();
 
-       const res = await axios.get('/api/admin/services', {
-       });
-       console.log('[Services] Fetched:', res.data.length, 'services');
-       setServices(res.data);
-     } catch (err) {
-       console.error('[Services] Fetch error:', err);
-       const status = err.response?.status;
-       const data = err.response?.data;
-       const msg = data?.error || `Request failed with status ${status}`;
-       setError(`Failed to fetch services: ${msg}`);
-     }
-     setLoading(false);
-   };
+  const services = Array.isArray(servicesData) ? servicesData : [];
+  const error = fetchError ? 'Failed to fetch services' : '';
 
   const handleStatusChange = async (id, currentStatus) => {
     const newStatus = currentStatus === 'Approved' ? 'Pending' : 'Approved';
     try {
-      await axios.put(`/api/admin/services/${id}`, { displayStatus: newStatus }, {
-      });
-      setServices(services.map(s =>
-        s._id === id ? { ...s, displayStatus: newStatus } : s
-      ));
+      await updateStatus({ id, status: newStatus });
     } catch (err) {
       console.error('Failed to update status:', err);
       alert('Failed to update status');
@@ -44,21 +24,15 @@ export default function AdminServicesPage() {
   };
 
   const handleDelete = async (id, name) => {
-    if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
+    if (!window.confirm(`Are you sure you want to delete "${name}"?`)) return;
     try {
-      await axios.delete(`/api/admin/services/${id}`, {
-      });
-      setServices(services.filter(s => s._id !== id));
+      await deleteService(id);
       alert('Service deleted successfully');
     } catch (err) {
       console.error('Failed to delete:', err);
       alert('Failed to delete service');
     }
   };
-
-  useEffect(() => {
-    fetchServices();
-  }, []);
 
   return (
     <div className="admin-services-page-container">
@@ -80,7 +54,7 @@ export default function AdminServicesPage() {
                 <div className="table-empty-icon">⚠️</div>
                 <h4>Error loading data</h4>
                 <p>{error}</p>
-                <button onClick={fetchServices} className="btn btn-primary" style={{marginTop: '1rem'}}>Retry</button>
+                <button onClick={() => refetch()} className="btn btn-primary" style={{marginTop: '1rem'}}>Retry</button>
               </div>
             )}
 

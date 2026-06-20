@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import { useState } from 'react';
 import './BlogPage.scss';
 import HeroBanner from './components/HeroBanner';
 import SearchFilterBar from './components/SearchFilterBar';
 import BlogGrid from './components/BlogGrid';
+import { useBlogs } from '../../hooks/public/useBlogs';
+import Loader from '../../components/Common/Loader';
 
 function mapBlog(b) {
   return {
@@ -22,40 +23,11 @@ function mapBlog(b) {
 const CATEGORIES = ['All', 'Catering', 'Weddings', 'Corporate', 'Guide', 'Party Ideas', 'Recipes', 'Tips'];
 
 export default function BlogPage() {
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('All');
   const [search, setSearch] = useState('');
 
-  const fetchBlogs = useCallback(async () => {
-    try {
-      const res = await axios.get('/api/blogs', { params: { _t: Date.now() } });
-      setPosts((res.data || []).map(mapBlog));
-    } catch (err) {
-      console.error('Failed to fetch blogs:', err);
-      setPosts([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchBlogs();
-
-    const handleStorageChange = (event) => {
-      if (event.key === 'blogUpdatedAt') fetchBlogs();
-    };
-
-    const handleBlogChanged = () => fetchBlogs();
-
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('blog-changed', handleBlogChanged);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('blog-changed', handleBlogChanged);
-    };
-  }, [fetchBlogs]);
+  const { data: rawPosts = [], isLoading: loading } = useBlogs();
+  const posts = rawPosts.map(mapBlog);
 
   const filtered = (filter === 'All' ? posts : posts.filter(p => p.category === filter))
     .filter(p => p.title.toLowerCase().includes(search.toLowerCase()) || p.excerpt.toLowerCase().includes(search.toLowerCase()));
@@ -65,7 +37,7 @@ export default function BlogPage() {
       <HeroBanner subtitle="Tips, guides, and insights about catering, event planning, and authentic Indian cuisine." />
       <SearchFilterBar filter={filter} setFilter={setFilter} search={search} setSearch={setSearch} categories={CATEGORIES} />
       {loading ? (
-        <div className="max-w-[1400px] mx-auto px-6 py-12"><p className="text-center">Loading…</p></div>
+        <Loader />
       ) : filtered.length === 0 ? (
         <div className="max-w-[1400px] mx-auto px-6 py-12"><p className="text-center">No articles found.</p></div>
       ) : (

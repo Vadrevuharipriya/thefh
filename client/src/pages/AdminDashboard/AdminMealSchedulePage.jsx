@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import axios from 'axios';
+import { useAdminSchedules, useUpdateAdminScheduleStatus, useDeleteAdminSchedule } from '../../hooks/admin/useAdminSchedules';
+import { useAdminMeal } from '../../hooks/admin/useAdminMeals';
 import { Link, useParams } from 'react-router-dom';
 import AdminSidebar from '../../components/AdminSidebar/AdminSidebar';
 import { Trash2 } from 'lucide-react';
@@ -7,36 +7,20 @@ import './AdminMealSchedulePage.scss';
 
 export default function AdminMealSchedulePage() {
   const { mealId } = useParams();
-  const [schedules, setSchedules] = useState([]);
-  const [meal, setMeal] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const { data: meal, isLoading: loadingMeal, isError: mealError } = useAdminMeal(mealId);
+  const { data: schedulesData, isLoading: loadingSchedules, isError: schedulesError, refetch } = useAdminSchedules(mealId);
 
-  const fetchSchedules = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const [schedRes, mealRes] = await Promise.all([
-        axios.get(`/api/meals/${mealId}/schedules`),
-        axios.get(`/api/meals/${mealId}`)
-      ]);
-      setSchedules(schedRes.data);
-      setMeal(mealRes.data);
-    } catch (err) {
-      setError('Failed to fetch schedules');
-      console.error('Fetch error:', err);
-    }
-    setLoading(false);
-  };
+  const { mutateAsync: updateStatus } = useUpdateAdminScheduleStatus();
+  const { mutateAsync: deleteSchedule } = useDeleteAdminSchedule();
+
+  const schedules = Array.isArray(schedulesData) ? schedulesData : [];
+  const loading = loadingMeal || loadingSchedules;
+  const error = mealError || schedulesError ? 'Failed to fetch schedules' : '';
 
    const handleStatusChange = async (id, currentStatus) => {
      const newStatus = currentStatus === 'Approved' ? 'Pending' : 'Approved';
      try {
-       await axios.put(`/api/admin/schedules/${id}`, { displayStatus: newStatus }, {
-       });
-       setSchedules(schedules.map(s =>
-         s._id === id ? { ...s, displayStatus: newStatus } : s
-       ));
+       await updateStatus({ id, status: newStatus });
      } catch (err) {
        console.error('Failed to update status:', err);
        alert('Failed to update status');
@@ -44,21 +28,15 @@ export default function AdminMealSchedulePage() {
    };
 
    const handleDelete = async (id, scheduleTime) => {
-     if (!confirm(`Are you sure you want to delete the "${scheduleTime}" schedule?`)) return;
+     if (!window.confirm(`Are you sure you want to delete the "${scheduleTime}" schedule?`)) return;
      try {
-       await axios.delete(`/api/admin/schedules/${id}`, {
-       });
-       setSchedules(schedules.filter(s => s._id !== id));
+       await deleteSchedule(id);
        alert('Schedule deleted successfully');
      } catch (err) {
        console.error('Failed to delete:', err);
        alert('Failed to delete schedule');
      }
    };
-
-  useEffect(() => {
-    fetchSchedules();
-  }, [mealId]);
 
    return (
      <div className="admin-meal-schedule-page-container">
@@ -81,7 +59,7 @@ export default function AdminMealSchedulePage() {
                 <div className="table-empty-icon">⚠️</div>
                 <h4>Error loading data</h4>
                 <p>{error}</p>
-                <button onClick={fetchSchedules} className="btn btn-primary" style={{marginTop: '1rem'}}>Retry</button>
+                <button onClick={() => refetch()} className="btn btn-primary" style={{marginTop: '1rem'}}>Retry</button>
               </div>
             )}
 

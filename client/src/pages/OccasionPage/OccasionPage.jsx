@@ -1,5 +1,6 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
+import { useOccasions } from '../../hooks/public/useProducts';
 import { ArrowRight, Phone, MessageCircle, ChevronRight, Star, Users, Award } from 'lucide-react';
 import { professionals } from '../../data/professionalsData';
 import { occasionPageData, getFallbackData } from '../../data/occasionPageData';
@@ -316,28 +317,16 @@ export default function OccasionPage() {
   const { occasion: slug } = useParams();
   const navigate = useNavigate();
 
-  const [occasion, setOccasion] = useState(null);
-  const [allOccasions, setAllOccasions] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { data: occasionsData, isLoading: loading } = useOccasions();
 
-  useEffect(() => {
-    const fetchOccasions = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch('/api/occasions?t=' + Date.now());
-        const data = await res.json();
-        // Filter only approved (enabled) occasions for frontend
-        const approvedOccasions = data.filter(o => o.displayStatus === 'Approved');
-        setAllOccasions(approvedOccasions);
-        const found = approvedOccasions.find((o) => slugify(o.name) === slug);
-        setOccasion(found);
-      } catch (err) {
-        console.error('Failed to fetch occasions:', err);
-      }
-      setLoading(false);
-    };
-    fetchOccasions();
-  }, [slug]);
+  const allOccasions = useMemo(() => {
+    if (!occasionsData) return [];
+    return occasionsData.filter(o => o.displayStatus === 'Approved');
+  }, [occasionsData]);
+
+  const occasion = useMemo(() => {
+    return allOccasions.find((o) => slugify(o.name) === slug) || null;
+  }, [allOccasions, slug]);
 
   const pageData = occasion ? {
     ...(occasionPageData[slug] || getFallbackData(slug)),

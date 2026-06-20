@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
-import axios from 'axios';
+import { useEffect, useState } from 'react';
+import { useAdminBlogs, useCreateBlog, useUpdateBlog, useDeleteBlog } from '../../hooks/admin/useAdminBlog';
+import { apiClient } from '../../utils/axiosInstance';
 import { Plus, Edit2, Trash2, Search, Eye, ImageOff, Trash } from 'lucide-react';
 import AdminSidebar from '../../components/AdminSidebar/AdminSidebar';
 import ReactQuill from 'react-quill';
@@ -25,8 +26,6 @@ function extractResponseData(response) {
 }
 
 export default function AdminBlogPage() {
-  const [blogs, setBlogs] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [preview, setPreview] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
@@ -42,26 +41,12 @@ export default function AdminBlogPage() {
     published: true,
   });
 
-  const notifyBlogChanged = () => {
-    localStorage.setItem('blogUpdatedAt', String(Date.now()));
-    window.dispatchEvent(new Event('blog-changed'));
-  };
+  const { data: rawBlogs = [], isLoading: loading } = useAdminBlogs();
+  const createBlog = useCreateBlog();
+  const updateBlog = useUpdateBlog();
+  const deleteBlog = useDeleteBlog();
 
-  const fetchBlogs = useCallback(async () => {
-    try {
-      const res = await axios.get('/api/admin/blogs', {
-      });
-      const data = extractResponseData(res);
-      setBlogs(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error('Failed to fetch blogs:', err);
-      setBlogs([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => { fetchBlogs(); }, [fetchBlogs]);
+  const blogs = Array.isArray(rawBlogs) ? rawBlogs : [];
 
   useEffect(() => {
     if (!successMessage) return undefined;
@@ -122,8 +107,9 @@ export default function AdminBlogPage() {
     uploadData.append('image', file);
 
     try {
-      const res = await axios.post('/api/admin/upload', uploadData, {
+      const res = await apiClient.post('/admin/upload', uploadData, {
         headers: {
+          'Content-Type': 'multipart/form-data'
         }
       });
       setFormData({ ...formData, image: res.data.url });
@@ -178,21 +164,15 @@ export default function AdminBlogPage() {
         slug: formData.slug || generateSlug(formData.title),
       };
 
-      const response = editingBlog
-        ? await axios.put(`/api/admin/blogs/${editingBlog._id}`, body, {
-          })
-        : await axios.post('/api/admin/blogs', body, {
-          });
-
-      const savedBlog = extractResponseData(response);
-      setBlogs((prev) => editingBlog
-        ? prev.map((blog) => (blog._id === savedBlog._id ? savedBlog : blog))
-        : [savedBlog, ...prev]);
+      if (editingBlog) {
+        await updateBlog.mutateAsync({ id: editingBlog._id, data: body });
+      } else {
+        await createBlog.mutateAsync(body);
+      }
 
       setShowForm(false);
       setEditingBlog(null);
       resetForm();
-      notifyBlogChanged();
       setSuccessMessage(editingBlog ? 'Blog updated successfully.' : 'Blog added successfully.');
     } catch (err) {
       setError(err.response?.data?.details || err.response?.data?.error || 'Save failed. Please try again.');
@@ -206,10 +186,7 @@ export default function AdminBlogPage() {
 
 
     try {
-      await axios.delete(`/api/admin/blogs/${id}`, {
-      });
-      setBlogs((prev) => prev.filter((blog) => blog._id !== id));
-      notifyBlogChanged();
+      await deleteBlog.mutateAsync(id);
       setSuccessMessage('Blog deleted successfully.');
     } catch (err) {
       setError(err.response?.data?.details || err.response?.data?.error || 'Delete failed. Please try again.');

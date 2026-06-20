@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useUserOrders } from '../../hooks/public/useAccount';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, MapPin, CreditCard, ShoppingBag, Clock } from 'lucide-react';
 import './OrderDetailsPage.scss';
@@ -29,9 +30,20 @@ export default function OrderDetailsPage() {
   const { orderId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const [order, setOrder] = useState(location.state?.order || null);
-  const [loading, setLoading] = useState(!order);
-  const [error, setError] = useState(null);
+  const [localOrder] = useState(location.state?.order || null);
+
+  const { data: serverOrders, isLoading: isQueryLoading, error: queryError } = useUserOrders();
+
+  const order = useMemo(() => {
+    if (localOrder) return localOrder;
+    if (Array.isArray(serverOrders)) {
+      return serverOrders.find((item) => item._id === orderId || item.orderNumber === orderId) || null;
+    }
+    return null;
+  }, [localOrder, serverOrders, orderId]);
+
+  const loading = !localOrder && isQueryLoading;
+  const error = queryError ? 'Unable to load order details at the moment.' : (!loading && !order ? 'Order not found.' : null);
 
   const orderItems = useMemo(() => {
     if (!order || !Array.isArray(order.items)) return [];
@@ -75,37 +87,6 @@ export default function OrderDetailsPage() {
       : order.deliveryAddress.address || order.deliveryAddress.label || `${order.deliveryAddress.name || ''} ${order.deliveryAddress.address || ''}`.trim()
     : order?.address || order?.location || 'Address not available';
   const paymentText = order?.paymentMethod?.name || order?.paymentType || order?.payment || null;
-
-  useEffect(() => {
-    if (order) return;
-
-    const fetchOrder = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const response = await fetch('/api/account/orders');
-
-        const data = await response.json();
-        const found = Array.isArray(data)
-          ? data.find((item) => item._id === orderId || item.orderNumber === orderId)
-          : null;
-
-        if (found) {
-          setOrder(found);
-        } else {
-          setError('Order not found.');
-        }
-      } catch (fetchError) {
-        console.error(fetchError);
-        setError('Unable to load order details at the moment.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchOrder();
-  }, [order, orderId]);
 
   if (loading) {
     return (

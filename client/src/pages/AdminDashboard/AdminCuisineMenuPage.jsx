@@ -1,5 +1,7 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useAdminCuisine, useAdminCuisineMenu } from '../../hooks/admin/useAdminCuisine';
+import { useCreateAdminProduct, useUpdateAdminProduct, useDeleteAdminProduct } from '../../hooks/admin/useAdminProduct';
 import axios from 'axios';
 import { Edit, Trash2 } from 'lucide-react';
 import AdminSidebar from '../../components/AdminSidebar/AdminSidebar';
@@ -7,9 +9,13 @@ import './AdminCuisineMenuPage.scss';
 
 export default function AdminCuisineMenuPage() {
   const { cuisineId } = useParams();
-  const [cuisine, setCuisine] = useState(null);
-  const [menuItems, setMenuItems] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { data: cuisine, isLoading: loadingCuisine, isError: cuisineError, refetch: refetchCuisine } = useAdminCuisine(cuisineId);
+  const { data: menuItemsData, isLoading: loadingMenu, isError: menuError, refetch: refetchMenu } = useAdminCuisineMenu(cuisineId);
+  
+  const menuItems = Array.isArray(menuItemsData) ? menuItemsData : [];
+  const loading = loadingCuisine || loadingMenu;
+  const isError = cuisineError || menuError;
+
   const [error, setError] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
@@ -24,22 +30,14 @@ export default function AdminCuisineMenuPage() {
   });
   const [imagePreview, setImagePreview] = useState('');
 
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const [cuisineRes, menuRes] = await Promise.all([
-        axios.get(`/api/cuisines/${cuisineId}`),
-        axios.get(`/api/cuisines/${cuisineId}/menu`)
-      ]);
-      setCuisine(cuisineRes.data);
-      setMenuItems(menuRes.data);
-    } catch (err) {
-      setError('Failed to fetch data');
-      console.error('Fetch error:', err);
-    }
-    setLoading(false);
-  }, [cuisineId]);
+  const fetchData = useCallback(() => {
+    refetchCuisine();
+    refetchMenu();
+  }, [refetchCuisine, refetchMenu]);
+
+  const { mutateAsync: createProduct } = useCreateAdminProduct();
+  const { mutateAsync: updateProduct } = useUpdateAdminProduct();
+  const { mutateAsync: deleteProduct } = useDeleteAdminProduct();
 
 const openAddForm = () => {
       setEditingItem(null);
@@ -141,66 +139,27 @@ const openAddForm = () => {
  
        if (editingItem) {
          // Update existing item
-         const res = await fetch(`/api/admin/products/${editingItem._id}`, {
-           method: 'PUT',
-           headers: {
-             'Content-Type': 'application/json',
-           },
-           body: JSON.stringify(payload)
-         });
-         if (!res.ok) {
-           const errorBody = await res.json().catch(() => ({}));
-           throw new Error(errorBody.error || 'Failed to update item');
-         }
-         const updated = await res.json();
-         setMenuItems((prev) =>
-           prev.map((item) => (item._id === updated._id ? updated : item))
-         );
+         await updateProduct({ id: editingItem._id, data: payload });
        } else {
          // Create new item
-         const res = await fetch('/api/admin/products', {
-           method: 'POST',
-           headers: {
-             'Content-Type': 'application/json',
-           },
-           body: JSON.stringify(payload)
-         });
-         if (!res.ok) {
-           const errorBody = await res.json().catch(() => ({}));
-           throw new Error(errorBody.error || 'Failed to create item');
-         }
-         const created = await res.json();
-         setMenuItems((prev) => [...prev, created]);
+         await createProduct(payload);
        }
        closeAddForm();
      } catch (err) {
        console.error('Item operation failed:', err);
-       setError(err.message || 'Operation failed');
+       setError(err.response?.data?.error || err.message || 'Operation failed');
      }
    };
 
   const handleDelete = async (itemId) => {
     if (!window.confirm('Are you sure you want to delete this item?')) return;
     try {
-      const res = await fetch(`/api/admin/products/${itemId}`, {
-        method: 'DELETE',
-        headers: {
-        }
-      });
-      if (!res.ok) {
-        const errorBody = await res.json().catch(() => ({}));
-        throw new Error(errorBody.error || 'Failed to delete item');
-      }
-      setMenuItems((prev) => prev.filter((item) => item._id !== itemId));
+      await deleteProduct(itemId);
     } catch (err) {
       console.error('Delete failed:', err);
-      setError(err.message || 'Failed to delete item');
+      setError(err.response?.data?.error || err.message || 'Failed to delete item');
     }
   };
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
 
   return (
     <div className="admin-cuisine-menu-page">

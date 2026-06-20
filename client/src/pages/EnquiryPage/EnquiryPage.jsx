@@ -1,10 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ChevronRight, CheckCircle, Phone, MessageCircle } from 'lucide-react';
-import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
 import { clearAllCarts } from '../../utils/cartStorage';
 import OrderInquiryForm from '../../components/OrderInquiryForm/OrderInquiryForm';
+import { useOccasions, useLocations, useProducts } from '../../hooks/public/useProducts';
+import { useSubmitEnquiry, useSubmitOrderInquiry } from '../../hooks/public/useEnquiry';
+import Loader from '../../components/Common/Loader';
 import './EnquiryPage.scss';
 
 const LOCATIONS = ['Delhi NCR', 'Noida', 'Gurugram', 'Faridabad', 'Ghaziabad', 'Lucknow', 'Jaipur', 'Chandigarh', 'Dehradun', 'Other'];
@@ -145,36 +147,11 @@ function EnquiryForm({ preSelectedOccasion, orderCategory: propOrderCategory, in
   });
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [occasions, setOccasions] = useState([]);
-  const [locations, setLocations] = useState([]);
-  const [loadingOccasions, setLoadingOccasions] = useState(true);
-  const [loadingLocations, setLoadingLocations] = useState(true);
   const [error, setError] = useState('');
-
-  useEffect(() => {
-    if (user?.email) {
-      setForm(prev => ({ ...prev, email: user.email }));
-    }
-  }, [user]);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [occRes, locRes] = await Promise.all([
-          axios.get('/api/occasions'),
-          axios.get('/api/locations')
-        ]);
-        setOccasions(occRes.data);
-        setLocations(locRes.data);
-      } catch (err) {
-        console.error('Failed to fetch data:', err);
-      } finally {
-        setLoadingOccasions(false);
-        setLoadingLocations(false);
-      }
-    };
-    fetchData();
-  }, []);
+  const { data: occasions = [], isLoading: loadingOccasions } = useOccasions();
+  const { data: locations = [], isLoading: loadingLocations } = useLocations();
+  const submitEnquiry = useSubmitEnquiry();
+  const submitOrderInquiry = useSubmitOrderInquiry();
 
   // Update enquiryType when orderCategory is provided
   useEffect(() => {
@@ -209,9 +186,6 @@ function EnquiryForm({ preSelectedOccasion, orderCategory: propOrderCategory, in
 
     setLoading(true);
     try {
-      const headers = { 'Content-Type': 'application/json' };
-
-      const endpoint = isOrderCategory ? '/api/order-inquiry' : '/api/enquiries/enquiry';
       const payload = {
         ...form,
         deliveryAddress: form.address,
@@ -224,22 +198,18 @@ function EnquiryForm({ preSelectedOccasion, orderCategory: propOrderCategory, in
 
       console.log('[EnquiryForm] Submitting payload:', payload);
 
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(payload),
-      });
-
-      const responseData = await response.json();
-      if (!response.ok) {
-        console.error('[EnquiryForm] Backend response error:', responseData);
-        throw new Error(responseData?.details || responseData?.error || 'Failed to submit');
+      if (isOrderCategory) {
+        await submitOrderInquiry.mutateAsync(payload);
+      } else {
+        await submitEnquiry.mutateAsync(payload);
       }
+
       clearAllCarts();
       setSubmitted(true);
     } catch (err) {
       console.error('[EnquiryForm] Submission error:', err);
-      setError(err.message || 'Failed to submit enquiry. Please try again.');
+      setError(err.response?.data?.details || err.response?.data?.error || err.message || 'Failed to submit enquiry. Please try again.');
+    } finally {
       setLoading(false);
     }
   };
@@ -502,6 +472,8 @@ export default function EnquiryPage() {
     return <OrderInquiryForm plateData={incomingPlate} orderCategory={orderCategory} cartOrderCategory={cartOrderCategory} plateSummary="" />;
   }
 
+  const { data: allProducts = [] } = useProducts();
+
   useEffect(() => {
     if (!incomingPlate) return;
 
@@ -509,36 +481,26 @@ export default function EnquiryPage() {
     const missingIds = plateIds.filter((id) => !resolvedPlateItems[id]);
     if (missingIds.length === 0) return;
 
-    const fetchMissingItems = async () => {
-      try {
-        const responses = await Promise.all(
-          missingIds.map((id) => axios.get(`/api/products/${id}`).then((res) => res.data).catch(() => null))
-        );
-
-        const fetchedMap = responses.reduce((acc, product, index) => {
-          const id = missingIds[index];
-          if (product) {
-            acc[id] = {
-              id,
-              name: product.name,
-              price: product.price,
-              image: product.image,
-              veg: product.vegType === 'Vegetarian',
-            };
-          }
-          return acc;
-        }, {});
-
-        if (Object.keys(fetchedMap).length > 0) {
-          setResolvedPlateItems((prev) => ({ ...prev, ...fetchedMap }));
+    if (allProducts.length > 0) {
+      const fetchedMap = missingIds.reduce((acc, id) => {
+        const product = allProducts.find(p => p._id === id);
+        if (product) {
+          acc[id] = {
+            id,
+            name: product.name,
+            price: product.price,
+            image: product.image,
+            veg: product.vegType === 'Vegetarian',
+          };
         }
-      } catch (err) {
-        console.error('[EnquiryPage] Failed to resolve plate item names:', err);
-      }
-    };
+        return acc;
+      }, {});
 
-    fetchMissingItems();
-  }, [incomingPlate, resolvedPlateItems]);
+      if (Object.keys(fetchedMap).length > 0) {
+        setResolvedPlateItems((prev) => ({ ...prev, ...fetchedMap }));
+      }
+    }
+  }, [incomingPlate, resolvedPlateItems, allProducts]);
 
   const orderCategoryInfo = ORDER_CATEGORIES[orderCategory || ''] || null;
   const plateSummary = useMemo(

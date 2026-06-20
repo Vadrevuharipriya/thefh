@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
+import { useOccasions } from '../../hooks/public/useProducts';
 import { Link } from 'react-router-dom';
 import { slugify } from '../../utils/slugify';
 import './OccasionsSection.scss';
@@ -29,25 +30,12 @@ function OccasionCardWithLabel({ occasion, large = false, eager = false }) {
 }
 
 export default function OccasionsSection() {
-  const [occasions, setOccasions] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { data: occasionsData, isLoading: loading } = useOccasions();
 
-  useEffect(() => {
-    const fetchOccasions = async () => {
-      try {
-        const res = await fetch('/api/occasions');
-        const data = await res.json();
-        // Filter only approved occasions
-        const approved = data.filter(o => o.displayStatus === 'Approved');
-        setOccasions(approved);
-      } catch (err) {
-        console.error('Failed to fetch occasions:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchOccasions();
-  }, []);
+  const occasions = useMemo(() => {
+    if (!occasionsData) return [];
+    return occasionsData.filter(o => o.displayStatus === 'Approved');
+  }, [occasionsData]);
 
   if (loading) {
     return (

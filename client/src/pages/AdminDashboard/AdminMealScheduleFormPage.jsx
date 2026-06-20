@@ -1,6 +1,7 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useAdminSchedule, useCreateAdminSchedule, useUpdateAdminSchedule } from '../../hooks/admin/useAdminSchedules';
+import { useAdminMeal } from '../../hooks/admin/useAdminMeals';
 import AdminSidebar from '../../components/AdminSidebar/AdminSidebar';
 import { Trash2 } from 'lucide-react';
 import './AdminMealScheduleFormPage.scss';
@@ -13,44 +14,34 @@ const TIME_OPTIONS = [
 export default function AdminMealScheduleFormPage() {
   const { mealId, scheduleId } = useParams();
   const navigate = useNavigate();
-  const [mealName, setMealName] = useState('');
   const [form, setForm] = useState({
     scheduleTime: '',
     displayStatus: 'Approved'
   });
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [loadingMeal, setLoadingMeal] = useState(true);
 
-  // Fetch meal name for display
-  useEffect(() => {
-    const fetchMeal = async () => {
-      try {
-        const res = await axios.get(`/api/meals/${mealId}`);
-        setMealName(res.data.name || '');
-      } catch (err) {
-        console.error('Failed to fetch meal:', err);
-        setError('Failed to load meal details.');
-      } finally {
-        setLoadingMeal(false);
-      }
-    };
-    fetchMeal();
-  }, [mealId]);
+  const { data: mealData, isLoading: loadingMeal, isError: mealError } = useAdminMeal(mealId);
+  const { data: scheduleData } = useAdminSchedule(scheduleId);
+  const { mutateAsync: createSchedule, isPending: creating } = useCreateAdminSchedule();
+  const { mutateAsync: updateSchedule, isPending: updating } = useUpdateAdminSchedule();
 
-  // Fetch existing schedule if editing
+  const loading = creating || updating;
+  const mealName = mealData?.name || '';
+
   useEffect(() => {
-    if (scheduleId) {
-      axios.get(`/api/schedules/${scheduleId}`)
-        .then(res => {
-          setForm({
-            scheduleTime: res.data.scheduleTime || '',
-            displayStatus: res.data.displayStatus || 'Approved'
-          });
-        })
-        .catch(() => setError('Failed to fetch schedule'));
+    if (mealError) {
+      setError('Failed to load meal details.');
     }
-  }, [scheduleId]);
+  }, [mealError]);
+
+  useEffect(() => {
+    if (scheduleData) {
+      setForm({
+        scheduleTime: scheduleData.scheduleTime || '',
+        displayStatus: scheduleData.displayStatus || 'Approved'
+      });
+    }
+  }, [scheduleData]);
 
   const handleChange = e => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -58,23 +49,19 @@ export default function AdminMealScheduleFormPage() {
 
   const handleSubmit = async e => {
     e.preventDefault();
-    setLoading(true);
     setError('');
     try {
       const payload = { ...form, meal: mealId };
       if (scheduleId) {
-        await axios.put(`/api/admin/schedules/${scheduleId}`, payload, {
-        });
+        await updateSchedule({ id: scheduleId, data: payload });
       } else {
-        await axios.post('/api/admin/schedules', payload, {
-        });
+        await createSchedule(payload);
       }
       navigate(`/admin/meals/${mealId}/schedule`);
     } catch (err) {
       console.error('Save error:', err);
       setError(err.response?.data?.error || 'Failed to save schedule');
     }
-    setLoading(false);
   };
 
   if (loadingMeal) {

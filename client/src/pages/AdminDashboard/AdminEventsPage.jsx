@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
+import { useAdminEvents, useCreateAdminEvent, useUpdateAdminEvent, useDeleteAdminEvent, useReorderAdminEvents, useUpdateAdminEventStatus } from '../../hooks/admin/useAdminEvents';
 import axios from 'axios';
 import {
   Plus, Edit2, Trash2, Search, Eye, ImageOff,
@@ -32,19 +33,18 @@ export default function AdminEventsPage() {
   const sortableRef  = useRef(null);
   const dragBuffer   = useRef([]);
 
-  const fetchEvents = async () => {
-    setLoading(true);
-    try {
-      const res  = await axios.get('/api/admin/events');
-      setEvents(res.data || []);
-    } catch (err) {
-      console.error('Failed to fetch events:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: eventsData, isLoading: loadingEvents, refetch: fetchEvents } = useAdminEvents();
+  const { mutateAsync: createEvent } = useCreateAdminEvent();
+  const { mutateAsync: updateEvent } = useUpdateAdminEvent();
+  const { mutateAsync: deleteEvent } = useDeleteAdminEvent();
+  const { mutateAsync: reorderEvents } = useReorderAdminEvents();
+  const { mutateAsync: updateStatus } = useUpdateAdminEventStatus();
 
-  useEffect(() => { fetchEvents(); }, []);
+  useEffect(() => {
+    if (eventsData) {
+      setEvents(eventsData);
+    }
+  }, [eventsData]);
 
   const initSortable = useCallback(() => {
     if (sortableRef.current) sortableRef.current.destroy();
@@ -69,23 +69,22 @@ export default function AdminEventsPage() {
 
   useEffect(() => {
     if (events.length   ) {
-      setLoading(false)
       initSortable()
       return () => { sortableRef.current?.destroy(); sortableRef.current = null }
     } else {
       // don't bootstrap Sortable until we have at least one row
     }
-  }, [events.length, fetchEvents]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [events.length, initSortable]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const saveOrder = async () => {
     setSavingOrder(true);
     try {
-      await axios.put('/api/admin/events/reorder',
-        { order: events.map((e, i) => ({ _id: e._id, displayOrder: i })) },
+      await reorderEvents(
+        { order: events.map((e, i) => ({ _id: e._id, displayOrder: i })) }
       );
     } catch (err) {
       console.error('Reorder failed:', err);
-      fetchEvents(); // reload original order
+      if (eventsData) setEvents(eventsData); // reload original order
     } finally {
       setSavingOrder(false);
     }
@@ -96,7 +95,7 @@ export default function AdminEventsPage() {
     const idx = STATUS_OPTIONS.indexOf(cur);
     const next = STATUS_OPTIONS[(idx + 1) % STATUS_OPTIONS.length];
     try {
-      await axios.put(`/api/admin/events/${evt._id}`, { displayStatus: next });
+      await updateStatus({ id: evt._id, status: next });
       setEvents(events.map(e => e._id === evt._id ? { ...e, displayStatus: next } : e));
     } catch (err) {
       console.error('Status update failed:', err);
@@ -104,10 +103,9 @@ export default function AdminEventsPage() {
   };
 
   const handleDelete = async (id, name) => {
-    if (!confirm(`Delete event "${name}"?`)) return;
+    if (!window.confirm(`Delete event "${name}"?`)) return;
     try {
-      await axios.delete(`/api/admin/events/${id}`);
-      fetchEvents();
+      await deleteEvent(id);
     } catch (err) {
       console.error('Delete failed:', err);
     }
@@ -175,14 +173,13 @@ export default function AdminEventsPage() {
     try {
       const { ...body } = formData;
       if (editingEvent) {
-        await axios.put(`/api/admin/events/${editingEvent._id}`, body);
+        await updateEvent({ id: editingEvent._id, data: body });
       } else {
-        await axios.post('/api/admin/events', body);
+        await createEvent(body);
       }
       setShowForm(false);
       setEditingEvent(null);
       resetForm();
-      fetchEvents();
     } catch (err) {
       console.error('Save failed:', err);
     }
@@ -228,7 +225,7 @@ export default function AdminEventsPage() {
             <span className="count-badge">{events.length} events</span>
           </div>
 
-          {loading ? (
+          {loadingEvents ? (
             <div className="table-loading"><div className="loading-spinner" /></div>
           ) : filtered.length === 0 ? (
             <div className="table-empty">

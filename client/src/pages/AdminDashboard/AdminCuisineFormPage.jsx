@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useAdminCuisine, useCreateAdminCuisine, useUpdateAdminCuisine } from '../../hooks/admin/useAdminCuisine';
 import AdminSidebar from '../../components/AdminSidebar/AdminSidebar';
 import './AdminCuisineFormPage.scss';
 
@@ -12,24 +12,23 @@ export default function AdminCuisineFormPage() {
     shortDescription: '',
     displayStatus: 'Approved'
   });
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => {
+  const { data: cuisineData, isLoading: loadingCuisine } = useAdminCuisine(id);
+  const { mutateAsync: createCuisine, isPending: creating } = useCreateAdminCuisine();
+  const { mutateAsync: updateCuisine, isPending: updating } = useUpdateAdminCuisine();
 
-    if (id) {
-      axios.get(`/api/admin/cuisines/${id}`, {
-      })
-        .then(res => {
-          setForm({
-            name: res.data.name || '',
-            shortDescription: res.data.shortDescription || '',
-            displayStatus: res.data.displayStatus || 'Approved'
-          });
-        })
-        .catch(() => setError('Failed to fetch cuisine'));
+  const loading = creating || updating;
+
+  useEffect(() => {
+    if (cuisineData) {
+      setForm({
+        name: cuisineData.name || '',
+        shortDescription: cuisineData.shortDescription || '',
+        displayStatus: cuisineData.displayStatus || 'Approved'
+      });
     }
-  }, [id, navigate]);
+  }, [cuisineData]);
 
   const handleChange = e => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -37,17 +36,14 @@ export default function AdminCuisineFormPage() {
 
   const handleSubmit = async e => {
     e.preventDefault();
-    setLoading(true);
     setError('');
     try {
       const payload = { ...form };
 
       if (id) {
-        await axios.put(`/api/admin/cuisines/${id}`, payload, {
-        });
+        await updateCuisine({ id, data: payload });
       } else {
-        await axios.post('/api/admin/cuisines', payload, {
-        });
+        await createCuisine(payload);
       }
       navigate('/admin/cuisine');
     } catch (err) {
@@ -55,7 +51,6 @@ export default function AdminCuisineFormPage() {
       const msg = err.response?.data?.error || err.response?.data?.details || err.message || 'Failed to save cuisine';
       setError(msg);
     }
-    setLoading(false);
   };
 
   const getDisplayValue = (status) => {
