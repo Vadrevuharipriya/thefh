@@ -1,0 +1,27 @@
+{
+  "name": "thefh",
+  "version": "1.0.0",
+  "description": "Welcome to the official repository for **The Famous Halwai** web application. This comprehensive documentation covers every aspect of the project, including the technology stack, architecture, detailed folder structure, data models, and instructions on how to set up, run, and maintain the project.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
+    "install-all": "npm install && npm install --prefix server && npm install --prefix client",
+    "build": "npm run build --prefix client",
+    "start": "npm start --prefix server"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Vadrevuharipriya/thefh.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Vadrevuharipriya/thefh/issues"
+  },
+  "homepage": "https://github.com/Vadrevuharipriya/thefh#readme",
+  "devDependencies": {
+    "concurrently": "^10.0.3"
+  }
+}
