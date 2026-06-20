@@ -279,47 +279,38 @@ Follow these steps to get the project running locally from scratch.
    cd the-famous-halwai-website-main
    ```
 
-2. **Setup the Backend (Server)**
+2. **Install All Dependencies**
+   From the root folder, run the unified install script to install dependencies for the root, server, and client:
    ```bash
-   cd server
-   # Install dependencies
-   npm install
-
-   # Create the environment file
-   cp .env.example .env  # Or create .env manually and fill it using the guide above
-
-   # (Optional) Seed the database with initial data
-   npm run seed
+   npm run install-all
    ```
 
-3. **Setup the Frontend (Client)**
+3. **Configure the Environment**
    ```bash
-   cd ../client
-   # Install dependencies
-   npm install
+   cd server
+   cp .env.example .env  # Or create .env manually and fill it using the guide above
+   cd ..
+   ```
+
+4. **(Optional) Seed the Database**
+   ```bash
+   cd server
+   npm run seed
+   cd ..
    ```
 
 ---
 
 ## 9. Development Workflow
 
-To start developing locally, you need to run both the client and server concurrently.
+To start developing locally, you can run both the client and server concurrently from the root folder.
 
-1. **Start the Backend Server**
-   Open a terminal terminal:
+1. **Start the Application**
+   Open a terminal in the root folder (`the-famous-halwai-website-main`) and run:
    ```bash
-   cd server
    npm run dev
    ```
-   *This uses node --watch (or nodemon) to automatically restart the server upon file changes.*
-
-2. **Start the Frontend Client**
-   Open a new, separate terminal window:
-   ```bash
-   cd client
-   npm run dev
-   ```
-   *This starts the Vite development server with Hot Module Replacement.*
+   *This uses `concurrently` to automatically start both the Node.js backend server (with watch/nodemon) and the Vite React frontend server with Hot Module Replacement.*
 
 3. **Access the Application**
    - Frontend: `http://localhost:5173`
