@@ -74,7 +74,7 @@ app.use('/api/services', servicesRoutes);
 app.use('/api/occasions', occasionsRoutes);
 app.use('/api/meals', mealsRoutes);
 app.use('/api/blogs', blogsRoutes);
-app.use('/api/testimonials', testimonialsRoutes);
+app.use('/api/reviews', testimonialsRoutes);
 app.use('/api/cuisines', cuisinesRoutes);
 app.use('/api/banners', bannersRoutes);
 app.use('/api/events', eventsRoutes);
