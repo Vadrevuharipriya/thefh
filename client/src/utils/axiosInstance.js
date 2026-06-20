@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create a configured Axios instance
 export const apiClient = axios.create({
-  baseURL: '/api',
+  baseURL: import.meta.env.VITE_API_URL || '/api',
   withCredentials: true, // Crucial for sending/receiving HTTPOnly cookies
 });
 
