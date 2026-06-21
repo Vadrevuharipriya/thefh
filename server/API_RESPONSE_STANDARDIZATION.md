@@ -5,6 +5,7 @@ All API endpoints now return standardized response formats for both success and 
 
 ## Response Format
 
+
 ### Success Response
 ```json
 {
